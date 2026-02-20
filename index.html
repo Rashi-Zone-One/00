@@ -1,0 +1,1794 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เว็บไซต์สื่อการสอน วิชาโปรแกรมตารางคำนวณ</title>
+    
+    <!-- ========================================== -->
+    <!-- [ชุดที่ 1] Libraries และ External Resources -->
+    <!-- ========================================== -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- ========================================== -->
+    <!-- [ชุดที่ 2] CSS Styling (Original Colorful Design) -->
+    <!-- ========================================== -->
+    <style>
+        /* ตั้งค่าฟอนต์หลัก */
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #f8fafc; /* Slate-50 */
+            background-image: radial-gradient(circle at 10% 20%, rgb(239, 246, 255) 0%, rgb(255, 255, 255) 90%);
+            color: #334155;
+        }
+
+        /* Scrollbar ซ่อน */
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* สไตล์ของปุ่มเมนู */
+        .nav-link {
+            color: #64748b;
+            font-weight: 500;
+            padding: 0.6rem 1.2rem;
+            border-radius: 9999px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .nav-link:hover {
+            color: #2563eb;
+            background-color: rgba(37, 99, 235, 0.05);
+        }
+        .nav-link.active {
+            color: #ffffff;
+            background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+        }
+
+        /* การ์ดเนื้อหา (Glassmorphism) */
+        .content-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 1.75rem;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .content-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
+            border-color: rgba(37, 99, 235, 0.1);
+        }
+
+        /* หัวข้อเซ็คชั่น */
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1.2rem;
+            color: #1e293b;
+            position: relative;
+            display: inline-block;
+        }
+        .section-title::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -4px;
+            width: 40px;
+            height: 3px;
+            background: linear-gradient(to right, #2563eb, #0ea5e9);
+            border-radius: 2px;
+        }
+
+        /* ปฏิทิน */
+        .calendar-day {
+            width: 36px; height: 36px; margin: 0 auto;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; cursor: pointer; transition: all 0.2s; font-size: 0.9rem;
+        }
+        .calendar-day:hover:not(.today):not(.empty) { background-color: #f1f5f9; color: #2563eb; }
+        .calendar-day.today {
+            background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+            color: white; font-weight: 600;
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+        }
+        .calendar-day.empty { cursor: default; color: #cbd5e1; }
+
+        /* ปุ่มลงทะเบียน */
+        .btn-register {
+            background: #1e88e5;
+            color: white; width: 100%; padding: 0.85rem 1rem;
+            border-radius: 9999px;
+            font-size: 1.15rem; font-weight: bold;
+            transition: all 0.3s; text-align: center; 
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; border: none;
+            box-shadow: 0 4px 15px rgba(30, 136, 229, 0.3);
+        }
+        .btn-register:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(30, 136, 229, 0.4); background: #1976d2; }
+
+        /* ตัวหนังสือวิ่ง */
+        @keyframes scroll-left {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        .animate-scroll-left {
+            animation: scroll-left 25s linear infinite;
+            white-space: nowrap; display: inline-block;
+        }
+        .animate-scroll-left:hover { animation-play-state: paused; }
+
+        /* Animation Fade */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); filter: blur(2px); }
+            to { opacity: 1; transform: translateY(0); filter: blur(0); }
+        }
+        .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+    <!-- 3.1 ส่วนหัว (Header/Banner) -->
+    <header class="relative shadow-lg overflow-hidden py-6 md:py-10 z-50">
+        <div class="absolute inset-0">
+            <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80" class="w-full h-full object-cover object-center transform scale-105" alt="Banner Background" onerror="this.src='https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80'">
+            <div class="absolute inset-0 bg-slate-900/60 mix-blend-multiply"></div> 
+            <div class="absolute inset-0 bg-gradient-to-r from-blue-900/90 to-transparent"></div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center gap-6 relative z-10">
+            <div class="relative group cursor-default">
+                <div class="absolute -inset-4 bg-blue-400/30 rounded-full blur-2xl group-hover:bg-blue-400/50 transition duration-500"></div>
+                <div class="bg-white p-2 rounded-full w-28 h-28 flex items-center justify-center shrink-0 shadow-[0_10px_30px_-10px_rgba(37,99,235,0.5)] relative border-4 border-white ring-4 ring-blue-500/30 transform group-hover:scale-105 transition duration-300 overflow-hidden">
+                    <img src="as.jpg" class="w-full h-full object-contain p-1" alt="College Logo" onerror="this.onerror=null;this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png';">
+                </div>
+            </div>
+            
+            <div class="text-center md:text-left">
+                <div class="inline-flex items-center px-3 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-blue-100 text-[10px] font-bold tracking-widest uppercase mb-2 shadow-sm hover:bg-white/20 transition">
+                    <span class="w-1.5 h-1.5 rounded-full bg-green-400 mr-2 animate-pulse"></span>
+                    วิทยาลัยการอาชีพวังไกลกังวล ๒
+                </div>
+                <h1 class="text-2xl md:text-4xl font-black tracking-tight mb-2 text-white leading-tight drop-shadow-xl">
+                    สื่อการสอน <span class="hidden md:inline">|</span> <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-amber-500">โปรแกรมตารางคำนวณ</span>
+                </h1>
+                <p class="text-blue-100 text-sm font-light max-w-2xl opacity-90 drop-shadow-md leading-relaxed">
+                    เรียนรู้การใช้งาน Microsoft Excel อย่างมืออาชีพ ง่าย ครบ จบในที่เดียว
+                </p>
+            </div>
+        </div>
+    </header>
+
+    <!-- แถบตัวหนังสือวิ่ง -->
+    <div class="bg-slate-800 text-white py-2 overflow-hidden shadow-inner border-t border-slate-700 relative z-40">
+        <div class="max-w-7xl mx-auto px-4 overflow-hidden flex items-center">
+            <div class="bg-red-600 text-xs font-bold px-2 py-1 rounded mr-3 shadow-sm z-10 shrink-0">ประกาศ</div>
+            <div class="flex-grow overflow-hidden relative h-6">
+                <div class="animate-scroll-left text-sm font-light tracking-wide absolute top-0.5">
+                    <span class="mr-8"><i class="fas fa-bullhorn text-yellow-400 mr-2"></i>ยินดีต้อนรับนักศึกษาทุกท่านเข้าสู่เว็บไซต์สื่อการสอนวิชาโปรแกรมตารางคำนวณ</span>
+                    <span class="mr-8 text-slate-500">|</span>
+                    <span class="mr-8"><i class="fas fa-file-alt text-blue-400 mr-2"></i>ดาวน์โหลดเอกสารประกอบการเรียนได้ที่เมนู Content</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3.2 แถบเมนู -->
+    <nav class="sticky top-0 z-40 backdrop-blur-xl bg-white/80 border-b border-gray-200/60 shadow-sm transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex flex-wrap justify-center md:justify-start gap-1 py-3 text-sm md:text-base overflow-x-auto whitespace-nowrap scrollbar-hide">
+                <a onclick="switchTab('home')" class="nav-link active"><i class="fas fa-home mr-2"></i>Home</a>
+                <a onclick="switchTab('about')" class="nav-link"><i class="fas fa-info-circle mr-2"></i>About us</a>
+                <a onclick="switchTab('syllabus')" class="nav-link"><i class="fas fa-book mr-2"></i>Course Syllabus</a>
+                <a onclick="switchTab('content')" class="nav-link"><i class="fas fa-video mr-2"></i>Content</a>
+                <a onclick="switchTab('pretest')" class="nav-link"><i class="fas fa-pencil-alt mr-2"></i>Pre-Test</a>
+                <a onclick="switchTab('posttest')" class="nav-link"><i class="fas fa-clipboard-check mr-2"></i>Post-Test</a>
+                <a onclick="switchTab('satisfaction')" class="nav-link"><i class="fas fa-smile mr-2"></i>Satisfaction</a>
+                <a onclick="switchTab('contact')" class="nav-link"><i class="fas fa-envelope mr-2"></i>Contact</a>
+                <a onclick="openLoginModal()" class="nav-link text-blue-600 font-bold"><i class="fas fa-sign-in-alt mr-2"></i>Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 3.3 เนื้อหาหลัก -->
+    <main class="max-w-7xl mx-auto px-4 py-10 w-full flex-grow">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
+            
+            <!-- Sidebar ซ้าย (แสดงตลอด) -->
+            <aside class="lg:col-span-3 space-y-8">
+                <!-- ปฏิทิน -->
+                <div class="content-card">
+                    <h2 class="section-title"><i class="far fa-calendar-alt mr-2 text-blue-600"></i>ปฏิทิน</h2>
+                    <div class="calendar-header flex justify-between items-center mb-4 bg-gray-50/80 p-2 rounded-lg">
+                        <button onclick="changeMonth(-1)" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white hover:shadow-md text-gray-500 hover:text-blue-600"><i class="fas fa-chevron-left"></i></button>
+                        <span id="calendarTitle" class="font-bold text-slate-700 select-none">--</span>
+                        <button onclick="changeMonth(1)" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white hover:shadow-md text-gray-500 hover:text-blue-600"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                    <div id="calendarGrid" class="grid grid-cols-7 gap-y-2 text-center text-sm"></div>
+                </div>
+                <!-- ลิงก์ -->
+                <div class="content-card">
+                    <h2 class="section-title">เว็บไซต์ที่เกี่ยวข้อง</h2>
+                    <ul class="space-y-3 text-sm text-slate-600 font-medium">
+                        <li><a href="https://www.kkwtech.ac.th/mainpage" target="_blank" class="hover:text-blue-600 transition flex items-center group"><span class="w-1.5 h-1.5 rounded-full bg-gray-300 group-hover:bg-blue-500 mr-3 flex-shrink-0"></span>วิทยาลัยการอาชีพฯ</a></li>
+                        <li><a href="#" class="hover:text-blue-600 transition flex items-center group"><span class="w-1.5 h-1.5 rounded-full bg-gray-300 group-hover:bg-blue-500 mr-3 flex-shrink-0"></span>Microsoft Excel Help</a></li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Content Center -->
+            <section class="lg:col-span-6 transition-all duration-300" id="mainContentArea">
+                
+                <!-- 1. TAB HOME -->
+                <div id="tab-home" class="tab-content animate-fade-in h-full">
+                    <div class="content-card h-full flex flex-col border-t-4 border-t-blue-500">
+                        <div class="mb-6">
+                            <span class="text-xs font-bold text-blue-500 uppercase tracking-wider bg-blue-50 px-2 py-1 rounded">Video Lesson</span>
+                            <h2 class="text-2xl md:text-3xl font-bold mt-2 text-slate-800">ความรู้พื้นฐานโปรแกรมฐานข้อมูล</h2>
+                        </div>
+                        <a href="https://www.youtube.com/watch?v=AD-7Yurtdog" target="_blank" class="block relative bg-slate-900 rounded-2xl aspect-video shadow-2xl group cursor-pointer overflow-hidden mb-8 ring-1 ring-slate-200 hover:ring-4 hover:ring-blue-200 transition-all duration-300">
+                            <div class="absolute inset-0 flex items-center justify-center z-20">
+                                <div class="w-20 h-16 bg-red-600/90 backdrop-blur-sm rounded-2xl flex items-center justify-center group-hover:bg-red-600 shadow-xl transform group-hover:scale-110 transition">
+                                    <i class="fas fa-play text-white text-2xl pl-1"></i>
+                                </div>
+                            </div>
+                            <img src="https://img.youtube.com/vi/AD-7Yurtdog/maxresdefault.jpg" class="w-full h-full object-cover opacity-90 group-hover:opacity-75 group-hover:scale-105 transition duration-700" alt="Video Thumbnail">
+                        </a>
+                        
+                        <div class="mt-auto grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="flex flex-col items-center bg-white border border-slate-100 rounded-[20px] p-6 shadow-sm hover:shadow-md transition">
+                                <p class="text-[12px] font-bold text-slate-400 tracking-widest uppercase mb-4">Instructor</p>
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-full bg-[#E5F0FF] text-[#2563EB] flex items-center justify-center text-xl shrink-0">
+                                        <i class="fas fa-user-tie"></i>
+                                    </div>
+                                    <span class="font-bold text-slate-700 text-[15px]">Mr.Pornchai Ruangaram S.</span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex flex-col items-center bg-white border border-slate-100 rounded-[20px] p-6 shadow-sm hover:shadow-md transition">
+                                <p class="text-[12px] font-bold text-slate-400 tracking-widest uppercase mb-4">Instructor</p>
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-full bg-[#E5F0FF] text-[#2563EB] flex items-center justify-center text-xl shrink-0">
+                                        <i class="fas fa-user-tie"></i>
+                                    </div>
+                                    <span class="font-bold text-slate-700 text-[15px]">Mr.Rapeepat Aerkun</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. TAB ABOUT US -->
+                <div id="tab-about" class="tab-content hidden animate-fade-in">
+                    <div class="space-y-6">
+                        <div class="content-card bg-gradient-to-r from-slate-800 to-slate-900 text-white overflow-hidden relative shadow-lg hover:shadow-2xl transition duration-500">
+                            <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
+                            <div class="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-blue-500/20 rounded-full blur-3xl"></div>
+                            <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6 px-4">
+                                <div>
+                                    <h2 class="text-3xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-white">เกี่ยวกับเรา</h2>
+                                    <p class="text-slate-300 font-light max-w-lg leading-relaxed">
+                                        เว็บไซต์นี้เป็นส่วนหนึ่งของสื่อการเรียนการสอนรายวิชาโปรแกรมตารางคำนวณ 
+                                        มุ่งเน้นการพัฒนาทักษะดิจิทัลเพื่ออนาคต
+                                    </p>
+                                </div>
+                                <div class="hidden md:block text-6xl text-white/10 transform rotate-12">
+                                    <i class="fas fa-quote-right"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- ผู้จัดทำคนที่ 1: นายพรชัย -->
+                            <div class="content-card border-t-4 border-t-green-500 relative overflow-hidden flex flex-col h-full">
+                                <div class="absolute top-0 right-0 w-64 h-64 bg-green-50 rounded-bl-full -z-10 opacity-50"></div>
+                                <div class="flex items-center gap-3 mb-8 border-b border-gray-100 pb-4">
+                                    <div class="w-12 h-12 bg-green-100 text-green-600 rounded-2xl flex items-center justify-center shadow-sm"><i class="fas fa-user-circle text-2xl"></i></div>
+                                    <div>
+                                        <h3 class="font-bold text-xl text-gray-800">ผู้จัดทำและพัฒนาเว็บไซต์</h3>
+                                        <p class="text-xs text-gray-500">Developer Profile</p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-center flex-grow">
+                                    <div class="relative w-40 h-40 mb-6 group">
+                                        <div class="absolute inset-0 bg-gradient-to-tr from-green-300 to-blue-300 rounded-full blur-lg opacity-40 group-hover:opacity-60 transition duration-500 animate-pulse"></div>
+                                        <img src="a.jpg" alt="Mr.Pornchai" class="w-full h-full object-cover rounded-full border-4 border-white shadow-2xl relative z-10 transform transition duration-500 hover:scale-105" onerror="this.onerror=null;this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png';">
+                                        <div class="absolute bottom-2 right-2 z-20 bg-green-500 text-white text-xs px-2 py-1 rounded-full border-2 border-white shadow-lg font-bold flex items-center gap-1">
+                                            <span class="w-2 h-2 bg-white rounded-full animate-bounce"></span> Online
+                                        </div>
+                                    </div>
+                                    <div class="text-center w-full">
+                                        <h4 class="font-bold text-2xl text-gray-800 mb-1">นายพรชัย เรืองอร่าม</h4>
+                                        <p class="text-gray-500 font-medium mb-6">(ใหม่)</p>
+                                        <div class="flex gap-3 justify-center mb-6">
+                                            <a href="https://www.facebook.com/pornchai.ruangaram" target="_blank" class="w-10 h-10 rounded-xl bg-white border border-gray-200 text-[#1877F2] flex items-center justify-center hover:bg-[#1877F2] hover:text-white hover:border-[#1877F2] transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-1"><i class="fab fa-facebook-f text-lg"></i></a>
+                                            <a href="https://www.instagram.com/ruangaramp/" target="_blank" class="w-10 h-10 rounded-xl bg-white border border-gray-200 text-[#E1306C] flex items-center justify-center hover:bg-gradient-to-tr hover:from-yellow-400 hover:via-red-500 hover:to-purple-500 hover:text-white hover:border-transparent transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-1"><i class="fab fa-instagram text-lg"></i></a>
+                                            <a href="#" class="w-10 h-10 rounded-xl bg-white border border-gray-200 text-[#1DA1F2] flex items-center justify-center hover:bg-[#1DA1F2] hover:text-white hover:border-[#1DA1F2] transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-1"><i class="fab fa-twitter text-lg"></i></a>
+                                        </div>
+                                    </div>
+                                    <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm w-full relative overflow-hidden mt-auto">
+                                        <div class="absolute top-0 right-0 w-16 h-16 bg-blue-50 rounded-bl-full -z-10"></div>
+                                        <div class="space-y-3">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center shrink-0"><i class="fas fa-graduation-cap"></i></div>
+                                                <div><p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">ระดับการศึกษา</p><p class="font-bold text-gray-800 text-sm">ปวส.1</p></div>
+                                            </div>
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-8 h-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center shrink-0"><i class="fas fa-laptop-code"></i></div>
+                                                <div><p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">แผนกวิชา</p><p class="font-bold text-gray-800 text-sm">เทคโนโลยีธุรกิจดิจิทัล</p></div>
+                                            </div>
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-8 h-8 rounded-lg bg-pink-50 text-pink-600 flex items-center justify-center shrink-0"><i class="fas fa-birthday-cake"></i></div>
+                                                <div><p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">อายุ</p><p class="font-bold text-gray-800 text-sm">19 ปี</p></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ผู้จัดทำคนที่ 2: นายรพีภัทร -->
+                            <div class="content-card border-t-4 border-t-blue-500 relative overflow-hidden flex flex-col h-full">
+                                <div class="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-bl-full -z-10 opacity-50"></div>
+                                <div class="flex items-center gap-3 mb-8 border-b border-gray-100 pb-4">
+                                    <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center shadow-sm"><i class="fas fa-user-plus text-2xl"></i></div>
+                                    <div>
+                                        <h3 class="font-bold text-xl text-gray-800">ผู้ร่วมพัฒนาเว็บไซต์</h3>
+                                        <p class="text-xs text-gray-500">Co-Developer Profile</p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-center flex-grow">
+                                    <div class="relative w-40 h-40 mb-6 group">
+                                        <div class="absolute inset-0 bg-gradient-to-tr from-blue-300 to-purple-300 rounded-full blur-lg opacity-40 group-hover:opacity-60 transition duration-500 animate-pulse"></div>
+                                        <img src="MO1.jpg" alt="Mr.Rapeepat" class="w-full h-full object-cover rounded-full border-4 border-white shadow-2xl relative z-10 transform transition duration-500 hover:scale-105" onerror="this.onerror=null;this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png';">
+                                        <div class="absolute bottom-2 right-2 z-20 bg-blue-500 text-white text-xs px-2 py-1 rounded-full border-2 border-white shadow-lg font-bold flex items-center gap-1">
+                                            <span class="w-2 h-2 bg-white rounded-full animate-bounce"></span> Online
+                                        </div>
+                                    </div>
+                                    <div class="text-center w-full">
+                                        <h4 class="font-bold text-2xl text-gray-800 mb-1">นายรพีภัทร เออกุน</h4>
+                                        <p class="text-gray-500 font-medium mb-6">(ผู้ร่วมพัฒนา)</p>
+                                        <div class="flex gap-3 justify-center mb-6">
+                                            <a href="https://www.facebook.com/rapeepat.akkul?rdid=EaCdIIQflD8eml7w&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F1RMULkjbkf%2F#" target="_blank" class="w-10 h-10 rounded-xl bg-white border border-gray-200 text-[#1877F2] flex items-center justify-center hover:bg-[#1877F2] hover:text-white hover:border-[#1877F2] transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-1"><i class="fab fa-facebook-f text-lg"></i></a>
+                                            <a href="https://www.instagram.com/lts.rapeepat/" target="_blank" class="w-10 h-10 rounded-xl bg-white border border-gray-200 text-[#E1306C] flex items-center justify-center hover:bg-gradient-to-tr hover:from-yellow-400 hover:via-red-500 hover:to-purple-500 hover:text-white hover:border-transparent transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-1"><i class="fab fa-instagram text-lg"></i></a>
+                                            <a href="https://line.me/ti/p/bJn9vwN95a" target="_blank" class="w-10 h-10 rounded-xl bg-white border border-gray-200 text-[#06C755] flex items-center justify-center hover:bg-[#06C755] hover:text-white hover:border-[#06C755] transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-1"><i class="fab fa-line text-lg"></i></a>
+                                        </div>
+                                    </div>
+                                    <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm w-full relative overflow-hidden mt-auto">
+                                        <div class="absolute top-0 right-0 w-16 h-16 bg-blue-50 rounded-bl-full -z-10"></div>
+                                        <div class="space-y-3">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center shrink-0"><i class="fas fa-graduation-cap"></i></div>
+                                                <div><p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">ระดับการศึกษา</p><p class="font-bold text-gray-800 text-sm">ปวส.1</p></div>
+                                            </div>
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-8 h-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center shrink-0"><i class="fas fa-laptop-code"></i></div>
+                                                <div><p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">แผนกวิชา</p><p class="font-bold text-gray-800 text-sm">เทคโนโลยีธุรกิจดิจิทัล</p></div>
+                                            </div>
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-8 h-8 rounded-lg bg-pink-50 text-pink-600 flex items-center justify-center shrink-0"><i class="fas fa-birthday-cake"></i></div>
+                                                <div><p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">อายุ</p><p class="font-bold text-gray-800 text-sm">22 ปี</p></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
+                            <div class="content-card bg-gradient-to-br from-white to-orange-50/50 border border-orange-100 flex flex-col h-full hover:-translate-y-1 transition duration-300">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <div class="w-10 h-10 bg-orange-100 text-orange-600 rounded-lg flex items-center justify-center"><i class="fas fa-building"></i></div>
+                                    <h3 class="font-bold text-lg text-orange-900">เกี่ยวกับแผนกวิชา</h3>
+                                </div>
+                                <p class="text-sm text-gray-600 leading-relaxed mb-6 flex-grow">
+                                    แผนกวิชาเทคโนโลยีธุรกิจดิจิทัล มุ่งเน้นการจัดการเรียนการสอนเพื่อผลิตกำลังคนด้านดิจิทัลที่มีคุณภาพ 
+                                    รองรับการเปลี่ยนแปลงของเทคโนโลยีในโลกยุคปัจจุบัน ทั้งด้านการเขียนโปรแกรม กราฟิกดีไซน์ และพาณิชย์อิเล็กทรอนิกส์
+                                </p>
+                                <div class="flex flex-wrap gap-2 mt-auto">
+                                    <span class="px-3 py-1 bg-white border border-orange-200 text-orange-600 text-xs rounded-full shadow-sm font-semibold">Digital Business</span>
+                                    <span class="px-3 py-1 bg-white border border-orange-200 text-orange-600 text-xs rounded-full shadow-sm font-semibold">Programming</span>
+                                    <span class="px-3 py-1 bg-white border border-orange-200 text-orange-600 text-xs rounded-full shadow-sm font-semibold">IoT</span>
+                                </div>
+                            </div>
+                            <div class="content-card bg-gradient-to-br from-white to-purple-50/50 border border-purple-100 flex flex-col h-full hover:-translate-y-1 transition duration-300">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <div class="w-10 h-10 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center"><i class="fas fa-map-marker-alt"></i></div>
+                                    <h3 class="font-bold text-lg text-purple-900">ที่ตั้งสถานศึกษา</h3>
+                                </div>
+                                <div class="flex gap-4 items-start flex-grow">
+                                    <div class="w-16 h-16 bg-white rounded-xl border border-purple-100 flex items-center justify-center text-purple-600 shrink-0 shadow-sm p-1">
+                                        <img src="https://cdn-icons-png.flaticon.com/512/2991/2991231.png" class="w-full h-full object-contain opacity-80" alt="Map Icon">
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-gray-800 text-sm">วิทยาลัยการอาชีพวังไกลกังวล ๒</p>
+                                        <p class="text-sm text-gray-500 mt-2 leading-relaxed">ต.เขาใหญ่ อ.ชะอำ จ.เพชรบุรี <br>สังกัดสำนักงานคณะกรรมการการอาชีวศึกษา</p>
+                                    </div>
+                                </div>
+                                <a href="https://maps.app.goo.gl/k2zki4EYd2kr3bQW9" target="_blank" class="inline-flex items-center justify-center w-full mt-6 py-2 bg-white border border-purple-200 text-purple-600 text-sm font-bold rounded-lg hover:bg-purple-50 transition shadow-sm group">
+                                    <i class="fas fa-directions mr-2 group-hover:scale-110 transition"></i> ดูแผนที่การเดินทาง
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. TAB SYLLABUS -->
+                <div id="tab-syllabus" class="tab-content hidden animate-fade-in">
+                    <div class="content-card mb-6 border-l-4 border-purple-500 bg-gradient-to-r from-purple-50 to-white relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-4 opacity-10">
+                            <i class="fas fa-book-open text-9xl text-purple-900"></i>
+                        </div>
+                        <div class="relative z-10">
+                            <div class="flex flex-wrap items-center gap-4 mb-4">
+                                <span class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">รหัสวิชา: 21910-2005</span>
+                                <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">ท–ป–น: 2–2–3</span>
+                                <span class="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">หลักสูตร: ปวช. 2567</span>
+                            </div>
+                            <h2 class="text-3xl font-bold text-slate-800 mb-1">โปรแกรมตารางคำนวณ</h2>
+                            <h3 class="text-xl text-slate-500 font-medium mb-4">Spreadsheet Program</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-slate-600 border-t border-purple-100 pt-4 mt-2">
+                                <div><i class="fas fa-graduation-cap mr-2 text-purple-500"></i><b>สาขาวิชา:</b> เทคโนโลยีสารสนเทศ</div>
+                                <div><i class="fas fa-calendar-alt mr-2 text-purple-500"></i><b>ภาคเรียนที่:</b> 1 / 2567</div>
+                                <div><i class="fas fa-clock mr-2 text-purple-500"></i><b>เวลาเรียน:</b> 4 ชั่วโมง/สัปดาห์</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="content-card border-l-4 border-pink-400 bg-gradient-to-r from-pink-50/50 to-white">
+                            <div class="flex items-center gap-4">
+                                <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center text-pink-500 shadow-sm border-2 border-pink-100 shrink-0"><i class="fas fa-chalkboard-teacher text-2xl"></i></div>
+                                <div>
+                                    <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider">ครูผู้สอน (Instructor)</h3>
+                                    <p class="text-xl md:text-2xl font-bold text-slate-800 mt-1">นางสาวพัชราภรณ์ ตรุษเพชร</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 1. คำอธิบายรายวิชา (Course Description) -->
+                        <div class="content-card border border-slate-200">
+                            <h3 class="text-lg font-bold text-slate-800 mb-3 border-b pb-2 border-slate-100"><i class="fas fa-info-circle text-blue-500 mr-2"></i>1. คำอธิบายรายวิชา (Course Description)</h3>
+                            <p class="text-slate-600 leading-relaxed text-sm indent-8">ศึกษาและปฏิบัติเกี่ยวกับการใช้โปรแกรมตารางคำนวณ การสร้างและจัดรูปแบบตาราง การใช้งานสูตรและฟังก์ชันพื้นฐาน–ขั้นกลาง การจัดการข้อมูล การสร้างกราฟและแผนภูมิ การเชื่อมโยงข้อมูลระหว่างหลายชีต การวิเคราะห์ข้อมูลเบื้องต้น รวมถึงการประยุกต์ใช้โปรแกรมตารางคำนวณในงานธุรกิจดิจิทัล งานสำนักงาน และสถานการณ์จริง</p>
+                        </div>
+                        
+                        <!-- 2. จุดประสงค์และ 3. สมรรถนะ -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <!-- จุดประสงค์รายวิชา -->
+                            <div class="content-card border border-blue-200 bg-blue-50/30">
+                                <h3 class="text-lg font-bold text-blue-800 mb-4 border-b border-blue-100 pb-2">
+                                    <i class="fas fa-bullseye mr-2"></i>2. จุดประสงค์รายวิชา (Course Objectives)
+                                </h3>
+                                <ul class="space-y-3 text-sm text-slate-700">
+                                    <li class="flex items-start"><i class="fas fa-check-circle text-blue-500 mt-1 mr-2 shrink-0"></i><span><b>ความรู้:</b> เข้าใจหลักการและการทำงานของโปรแกรมตารางคำนวณ</span></li>
+                                    <li class="flex items-start"><i class="fas fa-check-circle text-blue-500 mt-1 mr-2 shrink-0"></i><span><b>ทักษะการจัดการ:</b> สร้างและจัดการข้อมูลในรูปแบบตารางอย่างถูกต้องและมีประสิทธิภาพ</span></li>
+                                    <li class="flex items-start"><i class="fas fa-check-circle text-blue-500 mt-1 mr-2 shrink-0"></i><span><b>ทักษะการคำนวณ:</b> ใช้สูตรและฟังก์ชันพื้นฐาน–ขั้นกลาง เพื่อคำนวณและวิเคราะห์ข้อมูล</span></li>
+                                    <li class="flex items-start"><i class="fas fa-check-circle text-blue-500 mt-1 mr-2 shrink-0"></i><span><b>ทักษะการนำเสนอ:</b> สร้างกราฟ แผนภูมิ และรายงานสรุปผลจากข้อมูลในตาราง</span></li>
+                                    <li class="flex items-start"><i class="fas fa-check-circle text-blue-500 mt-1 mr-2 shrink-0"></i><span><b>ทักษะการจัดการข้อมูล:</b> จัดเรียง กรอง และวิเคราะห์ข้อมูลเบื้องต้นอย่างเป็นระบบ</span></li>
+                                    <li class="flex items-start"><i class="fas fa-check-circle text-blue-500 mt-1 mr-2 shrink-0"></i><span><b>การประยุกต์ใช้:</b> บูรณาการโปรแกรมกับงานธุรกิจดิจิทัล งานเอกสาร และการนำเสนอข้อมูล</span></li>
+                                    <li class="flex items-start"><i class="fas fa-check-circle text-blue-500 mt-1 mr-2 shrink-0"></i><span><b>เจตคติ:</b> ปลูกฝังความละเอียดรอบคอบ ความรับผิดชอบ และจริยธรรมในวิชาชีพ</span></li>
+                                </ul>
+                            </div>
+
+                            <!-- สมรรถนะรายวิชา -->
+                            <div class="content-card border border-green-200 bg-green-50/30">
+                                <h3 class="text-lg font-bold text-green-800 mb-4 border-b border-green-100 pb-2">
+                                    <i class="fas fa-star mr-2"></i>3. สมรรถนะรายวิชา (Course Competencies)
+                                </h3>
+                                <ul class="space-y-3 text-sm text-slate-700">
+                                    <li class="flex items-start"><i class="fas fa-layer-group text-green-500 mt-1 mr-2 shrink-0"></i><span>อธิบายส่วนประกอบและหลักการทำงานของโปรแกรมตารางคำนวณได้อย่างถูกต้อง</span></li>
+                                    <li class="flex items-start"><i class="fas fa-layer-group text-green-500 mt-1 mr-2 shrink-0"></i><span>ออกแบบและจัดรูปแบบตาราง (Table Design) ให้ใช้งานได้จริง</span></li>
+                                    <li class="flex items-start"><i class="fas fa-layer-group text-green-500 mt-1 mr-2 shrink-0"></i><span>คำนวณข้อมูลด้วยฟังก์ชันพื้นฐานและเงื่อนไข (SUM, AVERAGE, IF, COUNTIF, MAX, MIN)</span></li>
+                                    <li class="flex items-start"><i class="fas fa-layer-group text-green-500 mt-1 mr-2 shrink-0"></i><span>เลือกใช้กราฟและแผนภูมิให้เหมาะสมกับลักษณะของข้อมูล</span></li>
+                                    <li class="flex items-start"><i class="fas fa-layer-group text-green-500 mt-1 mr-2 shrink-0"></i><span>จัดการข้อมูลขนาดใหญ่ด้วยเครื่องมือ Sort, Filter, Data Validation และการเชื่อมโยงข้อมูล</span></li>
+                                    <li class="flex items-start"><i class="fas fa-layer-group text-green-500 mt-1 mr-2 shrink-0"></i><span>ตรวจสอบความถูกต้องของข้อมูล (Data Auditing) และสูตรคำนวณ</span></li>
+                                    <li class="flex items-start"><i class="fas fa-layer-group text-green-500 mt-1 mr-2 shrink-0"></i><span>สร้างชิ้นงานประยุกต์ เช่น บัญชีเบื้องต้น หรือรายงานสรุปยอดขายในสถานการณ์จริง</span></li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- 4. แผนการจัดการเรียนรู้ (Course Outline Table) -->
+                        <div class="content-card border border-slate-200 overflow-hidden">
+                            <h3 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2 border-slate-100">
+                                <i class="fas fa-list-ul text-purple-500 mr-2"></i>4. แผนการจัดการเรียนรู้ (Learning Plan)
+                            </h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-sm text-left text-slate-600 border-collapse">
+                                    <thead class="text-xs text-slate-700 uppercase bg-slate-100/80">
+                                        <tr>
+                                            <th scope="col" class="px-4 py-3 rounded-tl-lg w-20 text-center border-b border-slate-200">สัปดาห์</th>
+                                            <th scope="col" class="px-4 py-3 border-b border-slate-200">หัวข้อการเรียนรู้</th>
+                                            <th scope="col" class="px-4 py-3 rounded-tr-lg border-b border-slate-200">กิจกรรม / เนื้อหาเน้นปฏิบัติ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
+                                            <td class="px-4 py-3 text-center font-bold text-purple-600">1</td>
+                                            <td class="px-4 py-3 font-semibold text-slate-800">บทนำสู่โปรแกรมตารางคำนวณ</td>
+                                            <td class="px-4 py-3">ส่วนประกอบหน้าจอ, การตั้งค่าพื้นฐาน</td>
+                                        </tr>
+                                        <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
+                                            <td class="px-4 py-3 text-center font-bold text-purple-600">2</td>
+                                            <td class="px-4 py-3 font-semibold text-slate-800">การจัดการ Worksheets & Cells</td>
+                                            <td class="px-4 py-3">การจัดการแถว คอลัมน์ และเทคนิคการป้อนข้อมูล</td>
+                                        </tr>
+                                        <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
+                                            <td class="px-4 py-3 text-center font-bold text-purple-600">3</td>
+                                            <td class="px-4 py-3 font-semibold text-slate-800">การออกแบบตาราง (Table Design)</td>
+                                            <td class="px-4 py-3">การจัดรูปแบบ (Format), การใส่เส้นขอบและสี</td>
+                                        </tr>
+                                        <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
+                                            <td class="px-4 py-3 text-center font-bold text-purple-600">4</td>
+                                            <td class="px-4 py-3 font-semibold text-slate-800">พื้นฐานการคำนวณและการอ้างอิง</td>
+                                            <td class="px-4 py-3">การเขียนสูตร (Formula) และการล็อคเซลล์ ($)</td>
+                                        </tr>
+                                        <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
+                                            <td class="px-4 py-3 text-center font-bold text-purple-600">5</td>
+                                            <td class="px-4 py-3 font-semibold text-slate-800">ฟังก์ชันทางสถิติพื้นฐาน</td>
+                                            <td class="px-4 py-3">การใช้ SUM, AVERAGE, MAX, MIN</td>
+                                        </tr>
+                                        <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
+                                            <td class="px-4 py-3 text-center font-bold text-purple-600">6</td>
+                                            <td class="px-4 py-3 font-semibold text-slate-800">ฟังก์ชันเงื่อนไขและตรรกศาสตร์</td>
+                                            <td class="px-4 py-3">การใช้ IF และ COUNTIF เพื่อการตัดสินใจ</td>
+                                        </tr>
+                                        <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
+                                            <td class="px-4 py-3 text-center font-bold text-purple-600">7</td>
+                                            <td class="px-4 py-3 font-semibold text-slate-800">การบริหารจัดการฐานข้อมูล</td>
+                                            <td class="px-4 py-3">เทคนิคการ Sort (จัดเรียง) และ Filter (กรองข้อมูล)</td>
+                                        </tr>
+                                        <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
+                                            <td class="px-4 py-3 text-center font-bold text-purple-600">8</td>
+                                            <td class="px-4 py-3 font-semibold text-slate-800">การนำเสนอข้อมูลด้วยภาพ (Visual)</td>
+                                            <td class="px-4 py-3">การสร้างและปรับแต่งกราฟ/แผนภูมิประเภทต่างๆ</td>
+                                        </tr>
+                                        <tr class="border-b border-slate-100 bg-yellow-50/70 hover:bg-yellow-100/70 transition">
+                                            <td class="px-4 py-3 text-center font-black text-yellow-600"><i class="fas fa-pen mr-1"></i> 9</td>
+                                            <td class="px-4 py-3 font-extrabold text-yellow-800">สอบกลางภาค (Midterm Exam)</td>
+                                            <td class="px-4 py-3 font-medium text-yellow-700">ทดสอบทักษะพื้นฐานและการใช้สูตร</td>
+                                        </tr>
+                                        <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
+                                            <td class="px-4 py-3 text-center font-bold text-purple-600">10</td>
+                                            <td class="px-4 py-3 font-semibold text-slate-800">การทำรายงานสรุปข้อมูล (Reports)</td>
+                                            <td class="px-4 py-3">การจัดหน้ากระดาษและการเตรียมรายงานเพื่อพิมพ์</td>
+                                        </tr>
+                                        <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
+                                            <td class="px-4 py-3 text-center font-bold text-purple-600">11</td>
+                                            <td class="px-4 py-3 font-semibold text-slate-800">การเชื่อมโยงข้อมูล (Data Linking)</td>
+                                            <td class="px-4 py-3">การดึงข้อมูลข้ามแผ่นงาน (Link Sheets) และข้ามไฟล์</td>
+                                        </tr>
+                                        <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
+                                            <td class="px-4 py-3 text-center font-bold text-purple-600">12</td>
+                                            <td class="px-4 py-3 font-semibold text-slate-800">การตรวจสอบข้อมูล (Data Validation)</td>
+                                            <td class="px-4 py-3">การสร้าง Drop-down List และจำกัดการกรอกข้อมูล</td>
+                                        </tr>
+                                        <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
+                                            <td class="px-4 py-3 text-center font-bold text-purple-600">13</td>
+                                            <td class="px-4 py-3 font-semibold text-slate-800">การวิเคราะห์ข้อมูลเบื้องต้น</td>
+                                            <td class="px-4 py-3">การสรุปผลยอดขายและข้อมูลเชิงธุรกิจ</td>
+                                        </tr>
+                                        <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
+                                            <td class="px-4 py-3 text-center font-bold text-purple-600">14</td>
+                                            <td class="px-4 py-3 font-semibold text-slate-800">การประยุกต์ใช้ในงานธุรกิจดิจิทัล</td>
+                                            <td class="px-4 py-3">Workshop: ระบบบัญชีเบื้องต้น / ระบบสต็อกสินค้า</td>
+                                        </tr>
+                                        <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
+                                            <td class="px-4 py-3 text-center font-bold text-purple-600">15-17</td>
+                                            <td class="px-4 py-3 font-semibold text-slate-800">โครงงานย่อย (Mini Project)</td>
+                                            <td class="px-4 py-3">สร้างระบบจัดการข้อมูลจากโจทย์สถานการณ์จริง</td>
+                                        </tr>
+                                        <tr class="bg-red-50/70 hover:bg-red-100/70 transition">
+                                            <td class="px-4 py-3 text-center font-black text-red-600 rounded-bl-lg"><i class="fas fa-flag-checkered mr-1"></i> 18</td>
+                                            <td class="px-4 py-3 font-extrabold text-red-800">สอบปลายภาค (Final Exam)</td>
+                                            <td class="px-4 py-3 font-medium text-red-700 rounded-br-lg">ประเมินผลสัมฤทธิ์ทางการเรียน</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- 5. กลยุทธ์การสอนและการวัดผล -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="content-card border border-slate-200">
+                                <h3 class="text-md font-bold text-slate-800 mb-3"><i class="fas fa-chalkboard-teacher text-indigo-500 mr-2"></i>5. กลยุทธ์การสอน</h3>
+                                <ul class="list-disc list-inside text-sm text-slate-600 space-y-2">
+                                    <li>เน้นการบรรยายควบคู่การฝึกปฏิบัติจริง (Hands-on Learning)</li>
+                                    <li>แบบฝึกหัดรายสัปดาห์</li>
+                                </ul>
+                            </div>
+                            <div class="content-card border border-slate-200">
+                                <h3 class="text-md font-bold text-slate-800 mb-3"><i class="fas fa-tasks text-orange-500 mr-2"></i>การประเมินผล</h3>
+                                <ul class="text-sm space-y-2 text-slate-600">
+                                    <li class="flex justify-between border-b border-gray-100 pb-2"><span>แบบฝึกหัดและการบ้าน (Progress)</span> <span class="font-bold text-blue-600">30%</span></li>
+                                    <li class="flex justify-between border-b border-gray-100 pb-2"><span>สอบกลางภาค (Midterm)</span> <span class="font-bold text-blue-600">30%</span></li>
+                                    <li class="flex justify-between pt-2"><span>สอบปลายภาค (Final Project/Test)</span> <span class="font-bold text-blue-600">40%</span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. CONTENT TAB -->
+                <div id="tab-content" class="tab-content hidden animate-fade-in">
+                    
+                    <!-- เมนูเลือกบทเรียน -->
+                    <div id="content-menu">
+                        <!-- Header Section -->
+                        <div class="bg-[#4338CA] rounded-[20px] p-6 text-white mb-8 relative overflow-hidden shadow-md flex items-center">
+                            <div class="absolute right-0 top-0 h-full w-1/3 bg-gradient-to-l from-white/10 to-transparent"></div>
+                            <div class="relative z-10 flex items-center gap-4">
+                                <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-2xl shrink-0">
+                                    <i class="fas fa-book-reader"></i>
+                                </div>
+                                <div>
+                                    <h2 class="text-2xl font-bold mb-1">บทเรียนและเอกสารประกอบ</h2>
+                                    <p class="text-indigo-100 text-[13px] opacity-90 font-medium">รวมสไลด์การสอน ใบความรู้ และแบบทดสอบรายวิชาโปรแกรมตารางคำนวณ</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            
+                            <!-- บทที่ 1 -->
+                            <div class="bg-white rounded-[24px] p-6 shadow-sm border border-gray-100 relative overflow-hidden flex flex-col h-full hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                                <div class="absolute top-0 right-0 w-32 h-32 bg-[#F0F5FF] rounded-bl-[80px] -z-0"></div>
+                                <div class="relative z-10 flex flex-col h-full">
+                                    <div class="w-14 h-14 bg-[#E5EDFF] text-[#2563EB] rounded-2xl flex items-center justify-center font-extrabold text-xl mb-4">01</div>
+                                    <h3 class="font-bold text-[17px] text-slate-800 mb-1 leading-snug">บทที่ 1 (หน่วยที่ 1):<br>ความรู้เบื้องต้น</h3>
+                                    <p class="text-[13px] text-slate-500 mb-6 font-medium">Introduction to Spreadsheet</p>
+                                    <div class="mt-auto space-y-2.5">
+                                        <a href="https://docs.google.com/presentation/d/1um7bV2q1DfuRLBsemByS-vYBpAQdlYLv/edit?usp=drive_link&ouid=100230969166150514583&rtpof=true&sd=true" target="_blank" class="flex items-center justify-center gap-2 w-full py-2 px-4 bg-white border border-[#DBEAFE] text-[#2563EB] rounded-xl text-[13px] font-bold hover:bg-blue-50 transition">
+                                            <i class="fas fa-file-powerpoint text-base"></i> สไลด์เนื้อหา <i class="fas fa-external-link-square-alt text-blue-300 ml-1"></i>
+                                        </a>
+                                        <button onclick="startUnitTest(1)" class="flex items-center justify-between w-full py-2 px-4 bg-[#3B82F6] text-white rounded-xl font-bold hover:bg-blue-600 transition shadow-sm">
+                                            <span class="flex items-center gap-2">
+                                                <i class="fas fa-pencil-alt text-base"></i>
+                                                <span class="text-left leading-tight text-[12px]">แบบทดสอบ<br>หน่วยที่ 1</span>
+                                            </span>
+                                            <i class="fas fa-chevron-right text-white/80 text-sm"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- บทที่ 2 -->
+                            <div class="bg-white rounded-[24px] p-6 shadow-sm border border-gray-100 relative overflow-hidden flex flex-col h-full hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                                <div class="absolute top-0 right-0 w-32 h-32 bg-[#F0F5FF] rounded-bl-[80px] -z-0"></div>
+                                <div class="relative z-10 flex flex-col h-full">
+                                    <div class="w-14 h-14 bg-[#E5EDFF] text-[#2563EB] rounded-2xl flex items-center justify-center font-extrabold text-xl mb-4">02</div>
+                                    <h3 class="font-bold text-[17px] text-slate-800 mb-1 leading-snug">บทที่ 2 (หน่วยที่ 2):<br>การป้อนข้อมูล</h3>
+                                    <p class="text-[13px] text-slate-500 mb-6 font-medium">Data Entry & Types</p>
+                                    <div class="mt-auto space-y-2.5">
+                                        <a href="https://docs.google.com/presentation/d/1_mXvDoTz5SOtgoxj1YvNYh9GKGDNx5sI/edit?usp=drive_link&ouid=100230969166150514583&rtpof=true&sd=true" target="_blank" class="flex items-center justify-center gap-2 w-full py-2 px-4 bg-white border border-[#DBEAFE] text-[#2563EB] rounded-xl text-[13px] font-bold hover:bg-blue-50 transition">
+                                            <i class="fas fa-file-powerpoint text-base"></i> สไลด์เนื้อหา <i class="fas fa-external-link-square-alt text-blue-300 ml-1"></i>
+                                        </a>
+                                        <button onclick="startUnitTest(2)" class="flex items-center justify-between w-full py-2 px-4 bg-[#3B82F6] text-white rounded-xl font-bold hover:bg-blue-600 transition shadow-sm">
+                                            <span class="flex items-center gap-2">
+                                                <i class="fas fa-pencil-alt text-base"></i>
+                                                <span class="text-left leading-tight text-[12px]">แบบทดสอบ<br>หน่วยที่ 2</span>
+                                            </span>
+                                            <i class="fas fa-chevron-right text-white/80 text-sm"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- บทที่ 3 -->
+                            <div class="bg-white rounded-[24px] p-6 shadow-sm border border-gray-100 relative overflow-hidden flex flex-col h-full hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                                <div class="absolute top-0 right-0 w-32 h-32 bg-[#F0F5FF] rounded-bl-[80px] -z-0"></div>
+                                <div class="relative z-10 flex flex-col h-full">
+                                    <div class="w-14 h-14 bg-[#E5EDFF] text-[#2563EB] rounded-2xl flex items-center justify-center font-extrabold text-xl mb-4">03</div>
+                                    <h3 class="font-bold text-[17px] text-slate-800 mb-1 leading-snug">บทที่ 3 (หน่วยที่ 3):<br>การจัดรูปแบบ</h3>
+                                    <p class="text-[13px] text-slate-500 mb-6 font-medium">Cell Formatting</p>
+                                    <div class="mt-auto space-y-2.5">
+                                        <a href="https://docs.google.com/presentation/d/1HJjNyE1wVJQnvct8vcg-2rNx_-UEWvet/edit?usp=sharing&ouid=100230969166150514583&rtpof=true&sd=true" target="_blank" class="flex items-center justify-center gap-2 w-full py-2 px-4 bg-white border border-[#DBEAFE] text-[#2563EB] rounded-xl text-[13px] font-bold hover:bg-blue-50 transition">
+                                            <i class="fas fa-file-powerpoint text-base"></i> สไลด์เนื้อหา <i class="fas fa-external-link-square-alt text-blue-300 ml-1"></i>
+                                        </a>
+                                        <button onclick="startUnitTest(3)" class="flex items-center justify-between w-full py-2 px-4 bg-[#3B82F6] text-white rounded-xl font-bold hover:bg-blue-600 transition shadow-sm">
+                                            <span class="flex items-center gap-2">
+                                                <i class="fas fa-pencil-alt text-base"></i>
+                                                <span class="text-left leading-tight text-[12px]">แบบทดสอบ<br>หน่วยที่ 3</span>
+                                            </span>
+                                            <i class="fas fa-chevron-right text-white/80 text-sm"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- บทที่ 4 -->
+                            <div class="bg-white rounded-[24px] p-6 shadow-sm border border-gray-100 relative overflow-hidden flex flex-col h-full hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                                <div class="absolute top-0 right-0 w-32 h-32 bg-[#F0F5FF] rounded-bl-[80px] -z-0"></div>
+                                <div class="relative z-10 flex flex-col h-full">
+                                    <div class="w-14 h-14 bg-[#E5EDFF] text-[#2563EB] rounded-2xl flex items-center justify-center font-extrabold text-xl mb-4">04</div>
+                                    <h3 class="font-bold text-[17px] text-slate-800 mb-1 leading-snug">บทที่ 4 (หน่วยที่ 4):<br>การใช้สูตรคำนวณ</h3>
+                                    <p class="text-[13px] text-slate-500 mb-6 font-medium">Basic Formulas</p>
+                                    <div class="mt-auto space-y-2.5">
+                                        <a href="https://docs.google.com/presentation/d/1NAXoWwi5GPPH-sZpUyKilh_i7oFOMG-9/edit?usp=drive_link&ouid=100230969166150514583&rtpof=true&sd=true" target="_blank" class="flex items-center justify-center gap-2 w-full py-2 px-4 bg-white border border-[#DBEAFE] text-[#2563EB] rounded-xl text-[13px] font-bold hover:bg-blue-50 transition">
+                                            <i class="fas fa-file-powerpoint text-base"></i> สไลด์เนื้อหา <i class="fas fa-external-link-square-alt text-blue-300 ml-1"></i>
+                                        </a>
+                                        <button onclick="startUnitTest(4)" class="flex items-center justify-between w-full py-2 px-4 bg-[#3B82F6] text-white rounded-xl font-bold hover:bg-blue-600 transition shadow-sm">
+                                            <span class="flex items-center gap-2">
+                                                <i class="fas fa-pencil-alt text-base"></i>
+                                                <span class="text-left leading-tight text-[12px]">แบบทดสอบ<br>หน่วยที่ 4</span>
+                                            </span>
+                                            <i class="fas fa-chevron-right text-white/80 text-sm"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- บทที่ 5 -->
+                            <div class="bg-white rounded-[24px] p-6 shadow-sm border border-gray-100 relative overflow-hidden flex flex-col h-full hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                                <div class="absolute top-0 right-0 w-32 h-32 bg-[#F0F5FF] rounded-bl-[80px] -z-0"></div>
+                                <div class="relative z-10 flex flex-col h-full">
+                                    <div class="w-14 h-14 bg-[#E5EDFF] text-[#2563EB] rounded-2xl flex items-center justify-center font-extrabold text-xl mb-4">05</div>
+                                    <h3 class="font-bold text-[17px] text-slate-800 mb-1 leading-snug">บทที่ 5 (หน่วยที่ 5):<br>การสร้างกราฟ</h3>
+                                    <p class="text-[13px] text-slate-500 mb-6 font-medium">Charts & Graphs</p>
+                                    <div class="mt-auto space-y-2.5">
+                                        <a href="https://docs.google.com/presentation/d/1bPOla8crIyrtQr6DzPMyt5Eewj3434Ad/edit?usp=sharing&ouid=100230969166150514583&rtpof=true&sd=true" target="_blank" class="flex items-center justify-center gap-2 w-full py-2 px-4 bg-white border border-[#DBEAFE] text-[#2563EB] rounded-xl text-[13px] font-bold hover:bg-blue-50 transition">
+                                            <i class="fas fa-file-powerpoint text-base"></i> สไลด์เนื้อหา <i class="fas fa-external-link-square-alt text-blue-300 ml-1"></i>
+                                        </a>
+                                        <button onclick="startUnitTest(5)" class="flex items-center justify-between w-full py-2 px-4 bg-[#3B82F6] text-white rounded-xl font-bold hover:bg-blue-600 transition shadow-sm">
+                                            <span class="flex items-center gap-2">
+                                                <i class="fas fa-pencil-alt text-base"></i>
+                                                <span class="text-left leading-tight text-[12px]">แบบทดสอบ<br>หน่วยที่ 5</span>
+                                            </span>
+                                            <i class="fas fa-chevron-right text-white/80 text-sm"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- บทที่ 6 -->
+                            <div class="bg-white rounded-[24px] p-6 shadow-sm border border-gray-100 relative overflow-hidden flex flex-col h-full hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                                <div class="absolute top-0 right-0 w-32 h-32 bg-[#F0F5FF] rounded-bl-[80px] -z-0"></div>
+                                <div class="relative z-10 flex flex-col h-full">
+                                    <div class="w-14 h-14 bg-[#E5EDFF] text-[#2563EB] rounded-2xl flex items-center justify-center font-extrabold text-xl mb-4">06</div>
+                                    <h3 class="font-bold text-[17px] text-slate-800 mb-1 leading-snug">บทที่ 6 (หน่วยที่ 6):<br>การกรองข้อมูล</h3>
+                                    <p class="text-[13px] text-slate-500 mb-6 font-medium">Data Filtering</p>
+                                    <div class="mt-auto space-y-2.5">
+                                        <a href="https://docs.google.com/presentation/d/1ZbujqCA-zuXCywsEuTQfdRqSkNgDCHO2/edit?usp=drive_link&ouid=100230969166150514583&rtpof=true&sd=true" target="_blank" class="flex items-center justify-center gap-2 w-full py-2 px-4 bg-white border border-[#DBEAFE] text-[#2563EB] rounded-xl text-[13px] font-bold hover:bg-blue-50 transition">
+                                            <i class="fas fa-file-powerpoint text-base"></i> สไลด์เนื้อหา <i class="fas fa-external-link-square-alt text-blue-300 ml-1"></i>
+                                        </a>
+                                        <button onclick="startUnitTest(6)" class="flex items-center justify-between w-full py-2 px-4 bg-[#3B82F6] text-white rounded-xl font-bold hover:bg-blue-600 transition shadow-sm">
+                                            <span class="flex items-center gap-2">
+                                                <i class="fas fa-pencil-alt text-base"></i>
+                                                <span class="text-left leading-tight text-[12px]">แบบทดสอบ<br>หน่วยที่ 6</span>
+                                            </span>
+                                            <i class="fas fa-chevron-right text-white/80 text-sm"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- บทที่ 7 -->
+                            <div class="bg-white rounded-[24px] p-6 shadow-sm border border-gray-100 relative overflow-hidden flex flex-col h-full hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                                <div class="absolute top-0 right-0 w-32 h-32 bg-[#F0F5FF] rounded-bl-[80px] -z-0"></div>
+                                <div class="relative z-10 flex flex-col h-full">
+                                    <div class="w-14 h-14 bg-[#E5EDFF] text-[#2563EB] rounded-2xl flex items-center justify-center font-extrabold text-xl mb-4">07</div>
+                                    <h3 class="font-bold text-[17px] text-slate-800 mb-1 leading-snug">บทที่ 7 (หน่วยที่ 7):<br>Pivot Table</h3>
+                                    <p class="text-[13px] text-slate-500 mb-6 font-medium">Data Analysis</p>
+                                    <div class="mt-auto space-y-2.5">
+                                        <a href="https://docs.google.com/presentation/d/1noRSYUXWfQBJpXxQ3tv0v1iJo4dbd7ud/edit?usp=drive_link&ouid=100230969166150514583&rtpof=true&sd=true" target="_blank" class="flex items-center justify-center gap-2 w-full py-2 px-4 bg-white border border-[#DBEAFE] text-[#2563EB] rounded-xl text-[13px] font-bold hover:bg-blue-50 transition">
+                                            <i class="fas fa-file-powerpoint text-base"></i> สไลด์เนื้อหา <i class="fas fa-external-link-square-alt text-blue-300 ml-1"></i>
+                                        </a>
+                                        <button onclick="startUnitTest(7)" class="flex items-center justify-between w-full py-2 px-4 bg-[#3B82F6] text-white rounded-xl font-bold hover:bg-blue-600 transition shadow-sm">
+                                            <span class="flex items-center gap-2">
+                                                <i class="fas fa-pencil-alt text-base"></i>
+                                                <span class="text-left leading-tight text-[12px]">แบบทดสอบ<br>หน่วยที่ 7</span>
+                                            </span>
+                                            <i class="fas fa-chevron-right text-white/80 text-sm"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- บทที่ 8 -->
+                            <div class="bg-white rounded-[24px] p-6 shadow-sm border border-gray-100 relative overflow-hidden flex flex-col h-full hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                                <div class="absolute top-0 right-0 w-32 h-32 bg-[#F0F5FF] rounded-bl-[80px] -z-0"></div>
+                                <div class="relative z-10 flex flex-col h-full">
+                                    <div class="w-14 h-14 bg-[#E5EDFF] text-[#2563EB] rounded-2xl flex items-center justify-center font-extrabold text-xl mb-4">08</div>
+                                    <h3 class="font-bold text-[17px] text-slate-800 mb-1 leading-snug">บทที่ 8 (หน่วยที่ 8):<br>การทำงานกับฐานข้อมูล</h3>
+                                    <p class="text-[13px] text-slate-500 mb-6 font-medium">Database Management</p>
+                                    <div class="mt-auto space-y-2.5">
+                                        <a href="https://docs.google.com/presentation/d/1y4Kd_DDftAKoHmyuv1tZTFcI6EW-DeGc/edit?usp=drive_link&ouid=100230969166150514583&rtpof=true&sd=true" target="_blank" class="flex items-center justify-center gap-2 w-full py-2 px-4 bg-white border border-[#DBEAFE] text-[#2563EB] rounded-xl text-[13px] font-bold hover:bg-blue-50 transition">
+                                            <i class="fas fa-file-powerpoint text-base"></i> สไลด์เนื้อหา <i class="fas fa-external-link-square-alt text-blue-300 ml-1"></i>
+                                        </a>
+                                        <button onclick="startUnitTest(8)" class="flex items-center justify-between w-full py-2 px-4 bg-[#3B82F6] text-white rounded-xl font-bold hover:bg-blue-600 transition shadow-sm">
+                                            <span class="flex items-center gap-2">
+                                                <i class="fas fa-pencil-alt text-base"></i>
+                                                <span class="text-left leading-tight text-[12px]">แบบทดสอบ<br>หน่วยที่ 8</span>
+                                            </span>
+                                            <i class="fas fa-chevron-right text-white/80 text-sm"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- หน้ากำลังทำข้อสอบท้ายหน่วย (Unit Test) ซ่อนไว้ตอนแรก -->
+                    <div id="unit-test-exam-container" class="hidden">
+                        <div class="bg-white rounded-[24px] p-6 shadow-sm border border-gray-100 border-t-[6px] border-t-blue-500 mb-6 flex flex-col sm:flex-row justify-between items-center sticky top-20 z-30">
+                            <div class="flex items-center gap-4 mb-4 sm:mb-0">
+                                <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-xl shrink-0"><i class="fas fa-pencil-alt"></i></div>
+                                <div>
+                                    <h3 id="unit-test-exam-title" class="font-extrabold text-xl text-slate-800">แบบทดสอบท้ายหน่วยที่ X</h3>
+                                    <p class="text-sm text-blue-600 font-bold">เลือกคำตอบที่ถูกต้องที่สุดเพียงข้อเดียว</p>
+                                </div>
+                            </div>
+                            <button onclick="backToContentMenu()" class="px-5 py-2.5 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 text-sm font-bold transition flex items-center"><i class="fas fa-times mr-2"></i> ออกจากการทดสอบ</button>
+                        </div>
+
+                        <form id="unit-test-form" onsubmit="submitUnitTest(event)" class="space-y-4">
+                            <div id="unit-test-questions-area" class="space-y-4"></div>
+                            <div class="bg-white rounded-[24px] p-8 shadow-sm border border-gray-100 text-center mt-8">
+                                <button type="submit" class="px-12 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl font-bold text-lg hover:shadow-lg transition transform hover:-translate-y-1 inline-flex items-center">
+                                    <i class="fas fa-paper-plane mr-2"></i> ส่งคำตอบแบบทดสอบ
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- หน้าแสดงผลคะแนน Unit Test (ซ่อนไว้ตอนแรก) -->
+                    <div id="unit-test-result-container" class="hidden">
+                        <div class="bg-white rounded-[24px] p-10 shadow-sm border border-gray-100 border-t-[6px] border-t-green-500 text-center max-w-2xl mx-auto py-16">
+                            <div class="w-24 h-24 bg-green-100 text-green-500 rounded-full flex items-center justify-center text-5xl mb-6 mx-auto shadow-sm"><i class="fas fa-check-circle"></i></div>
+                            <h2 class="text-3xl font-extrabold text-slate-800 mb-2">ส่งแบบทดสอบเรียบร้อย!</h2>
+                            <p class="text-slate-500 mb-8 font-medium">สรุปผลคะแนนแบบทดสอบท้ายหน่วยของคุณ</p>
+                            <div class="bg-blue-50/50 border border-blue-100 rounded-3xl p-8 max-w-xs mx-auto mb-8">
+                                <p class="text-blue-600 font-bold uppercase tracking-widest mb-2">คะแนนที่ได้</p>
+                                <div class="text-6xl font-black text-slate-800"><span id="unit-test-score">0</span><span class="text-3xl text-gray-400 font-bold"> / 10</span></div>
+                            </div>
+                            <button onclick="backToContentMenu()" class="px-8 py-3.5 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-700 transition shadow-md flex items-center justify-center mx-auto"><i class="fas fa-book-reader mr-2"></i> กลับหน้าบทเรียน</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. TAB PRE-TEST (โทนสีส้มเหลือง) -->
+                <div id="tab-pretest" class="tab-content hidden animate-fade-in">
+                    <!-- หน้าเลือกชุดข้อสอบ -->
+                    <div id="pretest-menu">
+                        <div class="text-center mb-10 pt-4">
+                            <h2 class="text-3xl md:text-4xl font-extrabold text-slate-800 mb-2">แบบทดสอบก่อนเรียน</h2>
+                            <h3 class="text-lg md:text-xl font-bold text-yellow-600 mb-4">Pre-Test Examination</h3>
+                            <p class="text-slate-500 text-sm max-w-2xl mx-auto leading-relaxed">
+                                ทดสอบความรู้พื้นฐานก่อนเริ่มเรียนวิชาโปรแกรมตารางคำนวณ เพื่อประเมินความพร้อมและใช้เป็นเกณฑ์ในการวัดพัฒนาการหลังจากจบหลักสูตร
+                            </p>
+                        </div>
+
+                        <!-- Card Grid -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <!-- Loop Set 1-5 for Pre-Test -->
+                            <script>
+                                for(let i=1; i<=5; i++){
+                                    document.write(`
+                                    <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden flex flex-col border-t-[6px] border-t-yellow-400">
+                                        <div class="p-6 flex flex-col items-center text-center flex-grow">
+                                            <div class="w-16 h-16 bg-[#FFF9E6] text-[#DDA020] rounded-full flex items-center justify-center text-2xl mb-5 shadow-sm"><i class="fas fa-pencil-alt"></i></div>
+                                            <h3 class="text-xl font-extrabold text-slate-800 leading-snug mb-1">แบบ<br>ทดสอบ<br>ชุดที่ ${i}</h3>
+                                            <p class="text-[13px] font-bold text-[#DDA020] mb-6">Pre-Test Set ${i}</p>
+                                            
+                                            <div class="bg-[#FFFCF3] border border-[#FDF0D5] rounded-2xl p-4 w-full mb-6 text-left space-y-3">
+                                                <div class="flex items-start gap-3"><i class="fas fa-check text-[#DDA020] mt-1"></i><span class="text-sm text-slate-600 font-medium">ปรนัย 4 ตัวเลือก (20 ข้อ)</span></div>
+                                                <div class="flex items-center gap-3"><i class="fas fa-clock text-[#DDA020]"></i><span class="text-sm text-slate-600 font-medium">เวลา 30 นาที</span></div>
+                                            </div>
+                                            
+                                            <button onclick="startPreTest(${i})" class="w-full mt-auto py-3.5 bg-gradient-to-r from-[#FFC107] to-[#FF8C00] text-white rounded-xl font-bold text-[15px] shadow-md hover:shadow-lg transition">
+                                                <i class="fas fa-play mr-2"></i> เริ่มทำแบบทดสอบ
+                                            </button>
+                                        </div>
+                                    </div>
+                                    `);
+                                }
+                            </script>
+                        </div>
+                    </div>
+
+                    <!-- หน้ากำลังทำข้อสอบ (ซ่อนไว้ตอนแรก) -->
+                    <div id="pretest-exam-container" class="hidden">
+                        <div class="bg-white rounded-[24px] p-6 shadow-sm border border-gray-100 border-t-[6px] border-t-yellow-400 mb-6 flex flex-col sm:flex-row justify-between items-center sticky top-20 z-30">
+                            <div class="flex items-center gap-4 mb-4 sm:mb-0">
+                                <div class="w-12 h-12 bg-[#FFF9E6] text-[#DDA020] rounded-full flex items-center justify-center text-xl shrink-0"><i class="fas fa-pencil-alt"></i></div>
+                                <div>
+                                    <h3 id="pretest-exam-title" class="font-extrabold text-xl text-slate-800">แบบทดสอบ ชุดที่ X</h3>
+                                    <p class="text-sm text-[#DDA020] font-bold">เลือกคำตอบที่ถูกต้องที่สุดเพียงข้อเดียว</p>
+                                </div>
+                            </div>
+                            <button onclick="backToPreTestMenu()" class="px-5 py-2.5 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 text-sm font-bold transition flex items-center"><i class="fas fa-times mr-2"></i> ออกจากการทดสอบ</button>
+                        </div>
+
+                        <form id="pretest-form" onsubmit="submitPreTest(event)" class="space-y-4">
+                            <div id="pretest-questions-area" class="space-y-4"></div>
+                            <div class="bg-white rounded-[24px] p-8 shadow-sm border border-gray-100 text-center mt-8">
+                                <button type="submit" class="px-12 py-4 bg-gradient-to-r from-[#FFC107] to-[#FF8C00] text-white rounded-xl font-bold text-lg hover:shadow-lg transition transform hover:-translate-y-1 inline-flex items-center">
+                                    <i class="fas fa-paper-plane mr-2"></i> ส่งคำตอบแบบทดสอบ
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- หน้าแสดงผลคะแนน (ซ่อนไว้ตอนแรก) -->
+                    <div id="pretest-result-container" class="hidden">
+                        <div class="bg-white rounded-[24px] p-10 shadow-sm border border-gray-100 border-t-[6px] border-t-green-500 text-center max-w-2xl mx-auto py-16">
+                            <div class="w-24 h-24 bg-green-100 text-green-500 rounded-full flex items-center justify-center text-5xl mb-6 mx-auto shadow-sm"><i class="fas fa-check-circle"></i></div>
+                            <h2 class="text-3xl font-extrabold text-slate-800 mb-2">ส่งแบบทดสอบเรียบร้อย!</h2>
+                            <p class="text-slate-500 mb-8 font-medium">สรุปผลคะแนนการทดสอบก่อนเรียนของคุณ</p>
+                            <div class="bg-[#FFFCF3] border border-[#FDF0D5] rounded-3xl p-8 max-w-xs mx-auto mb-8">
+                                <p class="text-[#DDA020] font-bold uppercase tracking-widest mb-2">คะแนนที่ได้</p>
+                                <div class="text-6xl font-black text-slate-800"><span id="pretest-score">0</span><span class="text-3xl text-gray-400 font-bold">/20</span></div>
+                            </div>
+                            <button onclick="backToPreTestMenu()" class="px-8 py-3.5 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-700 transition shadow-md flex items-center justify-center mx-auto"><i class="fas fa-home mr-2"></i> กลับหน้าหลักแบบทดสอบ</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. TAB POST-TEST (ดีไซน์สีฟ้า-น้ำเงิน แบบที่ขอ และข้อสอบยาก 100 ข้อ) -->
+                <div id="tab-posttest" class="tab-content hidden animate-fade-in">
+                    
+                    <!-- หน้าเลือกชุดข้อสอบ -->
+                    <div id="posttest-menu">
+                        <!-- Header Post-Test -->
+                        <div class="text-center mb-10 pt-4">
+                            <h2 class="text-3xl md:text-4xl font-extrabold text-slate-800 mb-2">แบบทดสอบหลังเรียน</h2>
+                            <h3 class="text-lg md:text-xl font-bold text-blue-600 mb-4">Post-Test Examination</h3>
+                            <p class="text-slate-500 text-sm max-w-2xl mx-auto leading-relaxed">
+                                ประเมินความรู้ความเข้าใจขั้นสูงหลังจากเรียนจบหลักสูตรวิชาโปรแกรมตารางคำนวณ เพื่อวัดผลสัมฤทธิ์ทางการเรียนและการประยุกต์ใช้จริง
+                            </p>
+                        </div>
+
+                        <!-- Card Grid -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <!-- Loop Set 1-5 for Post-Test -->
+                            <script>
+                                for(let i=1; i<=5; i++){
+                                    document.write(`
+                                    <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden flex flex-col border-t-[6px] border-t-blue-500">
+                                        <div class="p-6 flex flex-col items-center text-center flex-grow">
+                                            <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-2xl mb-5 shadow-sm"><i class="fas fa-clipboard-check"></i></div>
+                                            <h3 class="text-xl font-extrabold text-slate-800 leading-snug mb-1">แบบ<br>ทดสอบ<br>ชุดที่ ${i}</h3>
+                                            <p class="text-[13px] font-bold text-blue-600 mb-6">Post-Test Set ${i}</p>
+                                            
+                                            <div class="bg-blue-50/50 border border-blue-100 rounded-2xl p-4 w-full mb-6 text-left space-y-3">
+                                                <div class="flex items-start gap-3"><i class="fas fa-check text-blue-500 mt-1"></i><span class="text-sm text-slate-600 font-medium">ปรนัย 4 ตัวเลือก (20 ข้อ)</span></div>
+                                                <div class="flex items-center gap-3"><i class="fas fa-clock text-blue-500"></i><span class="text-sm text-slate-600 font-medium">เวลา 30 นาที</span></div>
+                                                <div class="flex items-center gap-3"><i class="fas fa-exclamation-triangle text-red-400"></i><span class="text-xs text-slate-500 font-medium">ระดับ Advanced</span></div>
+                                            </div>
+                                            
+                                            <button onclick="startPostTest(${i})" class="w-full mt-auto py-3.5 bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-xl font-bold text-[15px] shadow-md hover:shadow-lg transition">
+                                                <i class="fas fa-play mr-2"></i> เริ่มทำแบบทดสอบ
+                                            </button>
+                                        </div>
+                                    </div>
+                                    `);
+                                }
+                            </script>
+                        </div>
+                    </div>
+
+                    <!-- หน้ากำลังทำข้อสอบ Post-Test (ซ่อนไว้ตอนแรก) -->
+                    <div id="posttest-exam-container" class="hidden">
+                        <div class="bg-white rounded-[24px] p-6 shadow-sm border border-gray-100 border-t-[6px] border-t-blue-500 mb-6 flex flex-col sm:flex-row justify-between items-center sticky top-20 z-30">
+                            <div class="flex items-center gap-4 mb-4 sm:mb-0">
+                                <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-xl shrink-0"><i class="fas fa-clipboard-check"></i></div>
+                                <div>
+                                    <h3 id="posttest-exam-title" class="font-extrabold text-xl text-slate-800">แบบทดสอบ ชุดที่ X</h3>
+                                    <p class="text-sm text-blue-600 font-bold">เลือกคำตอบที่ถูกต้องที่สุดเพียงข้อเดียว</p>
+                                </div>
+                            </div>
+                            <button onclick="backToPostTestMenu()" class="px-5 py-2.5 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 text-sm font-bold transition flex items-center"><i class="fas fa-times mr-2"></i> ออกจากการทดสอบ</button>
+                        </div>
+
+                        <form id="posttest-form" onsubmit="submitPostTest(event)" class="space-y-4">
+                            <!-- ข้อสอบจะถูกสร้างตรงนี้ด้วย JavaScript -->
+                            <div id="posttest-questions-area" class="space-y-4"></div>
+                            
+                            <div class="bg-white rounded-[24px] p-8 shadow-sm border border-gray-100 text-center mt-8">
+                                <button type="submit" class="px-12 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl font-bold text-lg hover:shadow-lg transition transform hover:-translate-y-1 inline-flex items-center">
+                                    <i class="fas fa-paper-plane mr-2"></i> ส่งคำตอบแบบทดสอบ
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- หน้าแสดงผลคะแนน Post-Test (ซ่อนไว้ตอนแรก) -->
+                    <div id="posttest-result-container" class="hidden">
+                        <div class="bg-white rounded-[24px] p-10 shadow-sm border border-gray-100 border-t-[6px] border-t-blue-600 text-center max-w-2xl mx-auto py-16">
+                            <div class="w-24 h-24 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-5xl mb-6 mx-auto shadow-sm"><i class="fas fa-award"></i></div>
+                            <h2 class="text-3xl font-extrabold text-slate-800 mb-2">ส่งแบบทดสอบเรียบร้อย!</h2>
+                            <p class="text-slate-500 mb-8 font-medium">สรุปผลคะแนนการทดสอบหลังเรียนขั้นสูงของคุณ</p>
+                            
+                            <div class="bg-blue-50/50 border border-blue-100 rounded-3xl p-8 max-w-xs mx-auto mb-8">
+                                <p class="text-blue-600 font-bold uppercase tracking-widest mb-2">คะแนนที่ได้</p>
+                                <div class="text-6xl font-black text-slate-800"><span id="posttest-score">0</span><span class="text-3xl text-gray-400 font-bold">/20</span></div>
+                            </div>
+
+                            <button onclick="backToPostTestMenu()" class="px-8 py-3.5 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-700 transition shadow-md flex items-center justify-center mx-auto"><i class="fas fa-home mr-2"></i> กลับหน้าหลักแบบทดสอบ</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 7. TAB SATISFACTION -->
+                <div id="tab-satisfaction" class="tab-content hidden animate-fade-in">
+                    <div class="content-card border-t-4 border-t-pink-500">
+                        <div class="text-center mb-8">
+                            <div class="w-16 h-16 bg-pink-100 text-pink-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 shadow-sm"><i class="fas fa-heart"></i></div>
+                            <h2 class="text-2xl font-bold text-slate-800 mb-2">แบบประเมินความพึงพอใจ</h2>
+                            <p class="text-slate-500 mb-6">ความคิดเห็นของคุณมีค่าสำหรับเรา เพื่อนำไปพัฒนาสื่อการสอนต่อไป</p>
+                        </div>
+                        
+                        <!-- ใส่ Google Form ประเมินความพึงพอใจ -->
+                        <div class="w-full flex justify-center overflow-hidden rounded-xl border border-gray-100 bg-gray-50/50 p-2 md:p-4">
+                            <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfOFyqAFOh90AJqpLWbvIRiVTnyGGkjVOjKLXR25Dpx4-TicQ/viewform?embedded=true" width="100%" height="1200" frameborder="0" marginheight="0" marginwidth="0" class="max-w-3xl rounded-xl bg-white shadow-sm min-h-[800px]">กำลังโหลด…</iframe>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 8. TAB CONTACT -->
+                <div id="tab-contact" class="tab-content hidden animate-fade-in">
+                    <div class="content-card border-t-4 border-t-sky-500">
+                        <h2 class="text-2xl font-bold mb-6 text-slate-800 flex items-center"><i class="fas fa-envelope-open-text mr-3 text-sky-500"></i>ติดต่อเรา</h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Contact 1: Pornchai -->
+                            <div class="bg-sky-50 p-6 rounded-2xl border border-sky-100 relative overflow-hidden flex flex-col h-full hover:shadow-md transition duration-300">
+                                <div class="absolute top-0 right-0 w-20 h-20 bg-white/50 rounded-bl-full -z-0"></div>
+                                <div class="flex items-center gap-4 mb-4 relative z-10">
+                                    <img src="a.jpg" class="w-14 h-14 rounded-full object-cover border-2 border-white shadow-sm" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png';">
+                                    <div>
+                                        <h3 class="font-bold text-lg text-sky-800">นายพรชัย เรืองอร่าม</h3>
+                                        <span class="bg-white text-sky-600 text-xs px-2 py-0.5 rounded-full font-bold shadow-sm">ผู้จัดทำ (1)</span>
+                                    </div>
+                                </div>
+                                <ul class="space-y-3 text-sm text-slate-600 relative z-10 flex-grow mb-6">
+                                    <li class="flex items-center gap-3"><i class="fas fa-university text-sky-400"></i> วิทยาลัยการอาชีพวังไกลกังวล ๒</li>
+                                    <li class="flex items-center gap-3"><i class="fas fa-envelope text-sky-400"></i> aocymsmoitrn@gmail.com</li>
+                                    <li class="flex items-center gap-3"><i class="fab fa-line text-green-500"></i> ab12365d</li>
+                                </ul>
+                                <div class="flex gap-2 relative z-10">
+                                    <a href="https://www.facebook.com/pornchai.ruangaram" target="_blank" class="flex-1 bg-white text-blue-600 py-2 rounded-lg text-center hover:bg-blue-600 hover:text-white transition shadow-sm"><i class="fab fa-facebook-f"></i></a>
+                                    <a href="https://www.instagram.com/ruangaramp/" target="_blank" class="flex-1 bg-white text-pink-500 py-2 rounded-lg text-center hover:bg-pink-500 hover:text-white transition shadow-sm"><i class="fab fa-instagram"></i></a>
+                                </div>
+                            </div>
+
+                            <!-- Contact 2: Rapeepat -->
+                            <div class="bg-blue-50 p-6 rounded-2xl border border-blue-100 relative overflow-hidden flex flex-col h-full hover:shadow-md transition duration-300">
+                                <div class="absolute top-0 right-0 w-20 h-20 bg-white/50 rounded-bl-full -z-0"></div>
+                                <div class="flex items-center gap-4 mb-4 relative z-10">
+                                    <img src="MO1.jpg" class="w-14 h-14 rounded-full object-cover border-2 border-white shadow-sm" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png';">
+                                    <div>
+                                        <h3 class="font-bold text-lg text-blue-800">นายรพีภัทร เออกุน</h3>
+                                        <span class="bg-white text-blue-600 text-xs px-2 py-0.5 rounded-full font-bold shadow-sm">ผู้จัดทำ (2)</span>
+                                    </div>
+                                </div>
+                                <ul class="space-y-3 text-sm text-slate-600 relative z-10 flex-grow mb-6">
+                                    <li class="flex items-center gap-3"><i class="fas fa-university text-blue-400"></i> วิทยาลัยการอาชีพวังไกลกังวล ๒</li>
+                                    <li class="flex items-center gap-3"><i class="fas fa-envelope text-blue-400"></i> -</li>
+                                    <li class="flex items-center gap-3"><i class="fab fa-line text-green-500"></i> -</li>
+                                </ul>
+                                <div class="flex gap-2 relative z-10">
+                                    <a href="https://www.facebook.com/rapeepat.akkul?rdid=EaCdIIQflD8eml7w&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F1RMULkjbkf%2F#" target="_blank" class="flex-1 bg-white text-blue-600 py-2 rounded-lg text-center hover:bg-blue-600 hover:text-white transition shadow-sm"><i class="fab fa-facebook-f"></i></a>
+                                    <a href="https://www.instagram.com/lts.rapeepat/" target="_blank" class="flex-1 bg-white text-pink-500 py-2 rounded-lg text-center hover:bg-pink-500 hover:text-white transition shadow-sm"><i class="fab fa-instagram"></i></a>
+                                    <a href="https://line.me/ti/p/bJn9vwN95a" target="_blank" class="flex-1 bg-white text-green-500 py-2 rounded-lg text-center hover:bg-green-500 hover:text-white transition shadow-sm"><i class="fab fa-line"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- Right Sidebar -->
+            <aside class="lg:col-span-3 space-y-8">
+                <div class="content-card text-center bg-gradient-to-br from-white to-blue-50 border border-blue-100">
+                    <h2 class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-2"><i class="far fa-clock mr-1"></i>Current Time</h2>
+                    <div class="text-4xl font-mono font-bold text-blue-600 my-2 tracking-widest" id="clock">--:--:--</div>
+                    <div class="text-sm text-slate-500 font-medium" id="currentDate">-</div>
+                </div>
+                <!-- ปุ่มลงทะเบียนใช้คลาส .btn-register ที่อัปเดตใหม่ -->
+                <button onclick="openRegisterModal()" class="btn-register"><i class="fas fa-user-plus mr-3 text-lg"></i>ลงทะเบียนเรียน</button>
+                <div class="content-card">
+                    <h2 class="section-title">ลิงก์น่าสนใจ</h2>
+                    <ul class="space-y-4">
+                        <li><a href="#" class="flex items-center p-3 rounded-xl bg-gray-50 hover:bg-white hover:shadow-md transition group border border-gray-100"><div class="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center text-red-500 mr-3 flex-shrink-0"><i class="fab fa-youtube"></i></div><span class="text-slate-600 text-sm font-medium group-hover:text-slate-900 flex-grow truncate">SQL Tutorial</span></a></li>
+                        <li><a href="#" class="flex items-center p-3 rounded-xl bg-gray-50 hover:bg-white hover:shadow-md transition group border border-gray-100"><div class="w-8 h-8 rounded-lg bg-gray-200 flex items-center justify-center text-gray-600 mr-3 flex-shrink-0"><i class="fab fa-wikipedia-w"></i></div><span class="text-slate-600 text-sm font-medium group-hover:text-slate-900 flex-grow truncate">HTML Wiki</span></a></li>
+                    </ul>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <footer class="bg-white/80 backdrop-blur-md border-t border-gray-200 mt-auto py-8 text-center text-slate-400 text-sm">
+        <p>&copy; 2025 Education Hub. All rights reserved.</p>
+    </footer>
+
+    <!-- Modal Registration (ย้าย Google Form มาไว้ที่นี่) -->
+    <div id="registerModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center transition-opacity p-4">
+        <div class="bg-white w-full max-w-3xl rounded-[24px] shadow-2xl overflow-hidden modal-content relative flex flex-col max-h-[90vh]">
+            <div class="bg-[#1e88e5] px-6 py-4 flex justify-between items-center text-white shrink-0">
+                <h3 class="font-bold text-lg"><i class="fas fa-user-plus mr-2 opacity-80"></i>ลงทะเบียนเรียน (Registration)</h3>
+                <button onclick="closeRegisterModal()" class="bg-white/20 hover:bg-white text-white hover:text-blue-600 rounded-full w-8 h-8 flex items-center justify-center transition shadow-sm"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="w-full flex-grow overflow-y-auto bg-gray-50 flex justify-center p-2 md:p-4">
+                <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSeyWAHwng4zJ9BRsRAD7Q4VOAwvrYz0vkKcJg3avvZR5pD8XQ/viewform?embedded=true" width="100%" height="700" frameborder="0" marginheight="0" marginwidth="0" class="max-w-2xl rounded-xl bg-white shadow-sm border border-gray-100 min-h-[700px]">กำลังโหลด…</iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Login -->
+    <div id="loginModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center transition-opacity p-4">
+        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden modal-content border border-white/50">
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-5 flex justify-between items-center text-white">
+                <h3 class="font-bold text-xl"><i class="fas fa-key mr-2 opacity-80"></i>เข้าสู่ระบบ</h3>
+                <button onclick="closeLoginModal()" class="hover:bg-white/20 rounded-full w-8 h-8 flex items-center justify-center transition"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-8">
+                <form onsubmit="handleLogin(event)">
+                    <div class="space-y-5">
+                        <div class="group">
+                            <label class="block text-sm font-semibold text-slate-600 mb-2">ชื่อผู้ใช้งาน / รหัสนักศึกษา</label>
+                            <div class="relative">
+                                <span class="absolute left-4 top-3.5 text-slate-400"><i class="fas fa-user"></i></span>
+                                <input type="text" class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none transition" required placeholder="Username">
+                            </div>
+                        </div>
+                        <div class="group">
+                            <label class="block text-sm font-semibold text-slate-600 mb-2">รหัสผ่าน</label>
+                            <div class="relative">
+                                <span class="absolute left-4 top-3.5 text-slate-400"><i class="fas fa-lock"></i></span>
+                                <input type="password" class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none transition" required placeholder="Password">
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <label class="flex items-center text-slate-500 cursor-pointer">
+                                <input type="checkbox" class="mr-2 rounded text-blue-600 focus:ring-blue-500"> จำฉันไว้ในระบบ
+                            </label>
+                            <a href="#" class="text-blue-600 hover:underline font-medium">ลืมรหัสผ่าน?</a>
+                        </div>
+                    </div>
+                    <div class="mt-8">
+                        <button type="submit" class="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all font-bold text-lg">เข้าสู่ระบบ</button>
+                    </div>
+                    <div class="mt-6 text-center text-sm text-slate-500">
+                        ยังไม่มีบัญชีผู้ใช้? <a href="#" onclick="closeLoginModal(); openRegisterModal();" class="text-blue-600 font-bold hover:underline">ลงทะเบียนที่นี่</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="successAlert" class="fixed top-6 right-6 bg-white border-l-4 border-green-500 text-slate-700 px-6 py-4 rounded-lg shadow-2xl hidden z-50 flex items-center gap-4 animate-bounce">
+        <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-500"><i class="fas fa-check"></i></div>
+        <div><h4 class="font-bold text-sm">สำเร็จ!</h4><p class="text-sm text-slate-500">ลงทะเบียนเรียบร้อย</p></div>
+    </div>
+
+    <script>
+        // Clock
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString('th-TH', { hour12: false });
+            document.getElementById('currentDate').innerText = now.toLocaleDateString('th-TH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        }
+        setInterval(updateClock, 1000); updateClock();
+
+        // Tabs
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            
+            const targetTab = document.getElementById('tab-' + tabId);
+            if (targetTab) {
+                targetTab.classList.remove('hidden');
+            }
+            
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+            
+            document.querySelectorAll(`.nav-link[onclick*="switchTab('${tabId}')"]`).forEach(link => {
+                link.classList.add('active');
+            });
+            
+            window.scrollTo(0, 0);
+        }
+
+        // Modal
+        const modal = document.getElementById('registerModal');
+        const loginModal = document.getElementById('loginModal');
+        const alertBox = document.getElementById('successAlert');
+        
+        function openRegisterModal() { modal.classList.remove('hidden'); }
+        function closeRegisterModal() { modal.classList.add('hidden'); }
+        
+        function openLoginModal() { loginModal.classList.remove('hidden'); }
+        function closeLoginModal() { loginModal.classList.add('hidden'); }
+
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeRegisterModal(); });
+        loginModal.addEventListener('click', (e) => { if (e.target === loginModal) closeLoginModal(); });
+
+        function handleRegister(e) {
+            e.preventDefault(); closeRegisterModal();
+            alertBox.querySelector('h4').innerText = "สำเร็จ!";
+            alertBox.querySelector('p').innerText = "ลงทะเบียนเรียบร้อย";
+            alertBox.classList.remove('hidden');
+            setTimeout(() => { alertBox.classList.add('hidden'); }, 3000);
+        }
+
+        function handleLogin(e) {
+            e.preventDefault(); closeLoginModal();
+            alertBox.querySelector('h4').innerText = "ยินดีต้อนรับ!";
+            alertBox.querySelector('p').innerText = "เข้าสู่ระบบสำเร็จ";
+            alertBox.classList.remove('hidden');
+            setTimeout(() => { alertBox.classList.add('hidden'); }, 3000);
+        }
+
+        // ==========================================
+        // ระบบ แบบทดสอบท้ายหน่วย (Unit Test 1-8)
+        // ==========================================
+        let currentUnitTestSet = 1;
+        
+        // ข้อมูลข้อสอบท้ายหน่วย 8 หน่วย (หน่วยละ 10 ข้อ)
+        const unitTestData = {
+            1: [ // หน่วยที่ 1: ความรู้เบื้องต้น
+                { q: "โปรแกรม Microsoft Excel จัดอยู่ในโปรแกรมประเภทใด?", options: ["Word Processor", "Spreadsheet", "Presentation", "Database"], ans: 1 },
+                { q: "ไฟล์เอกสารของ Excel เรียกว่าอะไร?", options: ["Document", "Workbook", "Worksheet", "Slide"], ans: 1 },
+                { q: "ช่องสี่เหลี่ยมแต่ละช่องในตาราง Excel เรียกว่าอะไร?", options: ["Row", "Column", "Cell", "Table"], ans: 2 },
+                { q: "คีย์ลัดในการบันทึกเอกสาร (Save) คือข้อใด?", options: ["Ctrl + C", "Ctrl + V", "Ctrl + P", "Ctrl + S"], ans: 3 },
+                { q: "แถวแนวนอนใน Excel แทนด้วยสัญลักษณ์ใด?", options: ["ตัวอักษร A, B, C...", "ตัวอักษร ก, ข, ค...", "ตัวเลข 1, 2, 3...", "เลขโรมัน I, II, III..."], ans: 2 },
+                { q: "ปุ่มคีย์ลัดสำหรับสร้างไฟล์งานใหม่คือข้อใด?", options: ["Ctrl + N", "Ctrl + O", "Ctrl + M", "Ctrl + W"], ans: 0 },
+                { q: "นามสกุลไฟล์ Excel รุ่นปัจจุบันที่สามารถบันทึก Macro (โค้ดคำสั่ง) ได้คือข้อใด?", options: [".xlsx", ".xlsm", ".xls", ".xlt"], ans: 1 },
+                { q: "แถบที่แสดงชื่อแท็บแผ่นงาน (Sheet Tab) อยู่บริเวณใดของหน้าจอโปรแกรม?", options: ["ด้านบนสุด", "ด้านซ้ายมือ", "ด้านล่างซ้าย", "ด้านขวาแผงเครื่องมือ"], ans: 2 },
+                { q: "หากต้องการซ่อนแถบเมนูริบบอน (Ribbon) อย่างรวดเร็วต้องกดปุ่มคีย์ลัดใด?", options: ["Ctrl + F1", "F5", "Alt + R", "Shift + F3"], ans: 0 },
+                { q: "ข้อใดคือประโยชน์หลักของโปรแกรมตารางคำนวณมากที่สุด?", options: ["ตัดต่อวิดีโอ", "พิมพ์จดหมายทางการ", "คำนวณและวิเคราะห์ข้อมูลตัวเลข", "สร้างงานนำเสนอแบบเคลื่อนไหว"], ans: 2 }
+            ],
+            2: [ // หน่วยที่ 2: การป้อนข้อมูล
+                { q: "หากกรอกตัวเลขในเซลล์ ปกติโปรแกรมจะจัดชิดด้านใด?", options: ["ชิดซ้าย", "ชิดขวา", "กึ่งกลาง", "กระจายเท่ากัน"], ans: 1 },
+                { q: "เครื่องหมายใดใช้เพื่อแสดงว่าข้อมูลในเซลล์นั้นเป็นข้อความ (แม้จะพิมพ์ตัวเลข)?", options: ["= (เท่ากับ)", "' (ขีดเดียว)", "\" (อัญประกาศ)", "& (แอนด์)"], ans: 1 },
+                { q: "ข้อผิดพลาด ###### เกิดจากสาเหตุใด?", options: ["สูตรผิดพลาด", "เซลล์แคบเกินกว่าจะแสดงตัวเลขได้หมด", "ไม่มีข้อมูลอ้างอิง", "อ้างอิงเซลล์ผิด"], ans: 1 },
+                { q: "คุณสมบัติ AutoFill ใช้สำหรับทำอะไร?", options: ["ระบายสีอัตโนมัติ", "เติมข้อมูลที่มีลำดับหรือรูปแบบซ้ำๆ อัตโนมัติ", "รวมผลลัพธ์อัตโนมัติ", "ลบข้อมูลที่ซ้ำกัน"], ans: 1 },
+                { q: "หากต้องการให้ข้อความยาวๆ ขึ้นบรรทัดใหม่ภายในเซลล์เดียวกัน ต้องใช้คำสั่งใด?", options: ["Merge & Center", "Format Painter", "Wrap Text", "Shrink to fit"], ans: 2 },
+                { q: "วันที่ใน Excel ถูกเก็บค่าในรูปแบบใดซ่อนอยู่เบื้องหลัง?", options: ["ข้อความอักษร", "ตัวเลขทศนิยม", "ตัวเลขอนุกรม (Serial Number)", "โค้ดฐานสอง"], ans: 2 },
+                { q: "หากต้องการบังคับขึ้นบรรทัดใหม่ในจุดที่ต้องการ (Manual Line Break) ภายในเซลล์ ต้องกดปุ่มใด?", options: ["Enter", "Shift + Enter", "Alt + Enter", "Ctrl + Enter"], ans: 2 },
+                { q: "คำสั่งใดใช้ลบเฉพาะรูปแบบ (Format) เช่น สีตัวอักษร แต่ยังคงตัวข้อความไว้?", options: ["Clear Contents", "Clear All", "Clear Comments", "Clear Formats"], ans: 3 },
+                { q: "จุดสี่เหลี่ยมเล็กๆ มุมล่างขวาของเซลล์ที่กำลังถูกเลือกเรียกว่าอะไร?", options: ["Anchor", "Fill Handle", "Copy Point", "Selection Box"], ans: 1 },
+                { q: "ข้อใดไม่ใช่ชนิดข้อมูลพื้นฐานใน Excel?", options: ["ข้อมูลตัวเลข", "ข้อมูลข้อความ", "ข้อมูลวิดีโอ", "ข้อมูลตรรกะ (True/False)"], ans: 2 }
+            ],
+            3: [ // หน่วยที่ 3: การจัดรูปแบบ
+                { q: "คำสั่งใดใช้ผสานเซลล์หลายเซลล์เข้าด้วยกันและจัดข้อความกึ่งกลาง?", options: ["Merge & Center", "Wrap Text", "Format Painter", "Insert Sheet"], ans: 0 },
+                { q: "หากต้องการคัดลอก 'รูปแบบ' ของเซลล์หนึ่งไปยังอีกเซลล์หนึ่ง ควรใช้เครื่องมือใด?", options: ["Copy & Paste", "Format Painter", "AutoFill", "Find & Select"], ans: 1 },
+                { q: "รูปแบบตัวเลข 'Accounting' แตกต่างจาก 'Currency' อย่างไร?", options: ["Accounting ไม่แสดงสัญลักษณ์สกุลเงิน", "Accounting จัดให้สัญลักษณ์สกุลเงินชิดขอบซ้ายเสมอ", "Currency จะไม่มีทศนิยม", "ไม่มีความแตกต่างกัน"], ans: 1 },
+                { q: "การใส่เส้นตารางให้เด่นชัดเวลาพิมพ์ ต้องใช้คำสั่งใดในแท็บ Home?", options: ["Fill Color", "Font Color", "Borders", "Cell Styles"], ans: 2 },
+                { q: "คีย์ลัดสำหรับทำให้ตัวอักษรเป็นตัวหนา (Bold) คืออะไร?", options: ["Ctrl + U", "Ctrl + I", "Ctrl + B", "Ctrl + N"], ans: 2 },
+                { q: "เมื่อต้องการใช้ Format Painter (แปรงทาสี) หลายๆ ครั้งต่อเนื่องกัน ต้องทำอย่างไร?", options: ["คลิกขวาที่ไอคอน", "กด Shift ค้างไว้แล้วคลิก", "ดับเบิลคลิกที่ไอคอน Format Painter", "ลากครอบทั้งหมด"], ans: 2 },
+                { q: "การจัดรูปแบบตัวเลขให้มีทศนิยม 2 ตำแหน่งและมีเครื่องหมายจุลภาค (,) คั่นหลักพัน คือรูปแบบใด?", options: ["Percent Style", "Comma Style", "Currency", "Scientific"], ans: 1 },
+                { q: "เครื่องมือใดช่วยเปลี่ยนสีเซลล์โดยอัตโนมัติตามเงื่อนไขที่เรากำหนดไว้ (เช่น คะแนนต่ำกว่า 50 ให้เป็นสีแดง)?", options: ["Cell Styles", "Format as Table", "Conditional Formatting", "Color Fill"], ans: 2 },
+                { q: "หากข้อความในเซลล์ยาวเกินไป และไม่ต้องการขยายความกว้างของคอลัมน์ ควรใช้ตัวเลือกใดใน Format Cells เพื่อบีบขนาดฟอนต์ให้พอดี?", options: ["Wrap Text", "Merge Cells", "Orientation", "Shrink to fit"], ans: 3 },
+                { q: "การล้างรูปแบบเส้นตารางทั้งหมดอย่างรวดเร็ว ต้องเลือกตัวเลือกเส้นขอบแบบใด?", options: ["All Borders", "Outside Borders", "No Border", "Thick Box Border"], ans: 2 }
+            ],
+            4: [ // หน่วยที่ 4: การใช้สูตรคำนวณ
+                { q: "การพิมพ์สูตรคำนวณทุกครั้ง ต้องขึ้นต้นด้วยเครื่องหมายใด?", options: ["+", "-", "=", "*"], ans: 2 },
+                { q: "เครื่องหมายใดใช้สำหรับการคูณใน Excel?", options: ["x", "*", "/", "^"], ans: 1 },
+                { q: "การอ้างอิงเซลล์แบบ 'ล็อคตำแหน่ง' (Absolute Reference) ต้องใช้สัญลักษณ์ใด?", options: ["$", "#", "@", "&"], ans: 0 },
+                { q: "ปุ่มคีย์บอร์ดใดใช้เพื่อใส่สัญลักษณ์ล็อคเซลล์ได้อย่างรวดเร็ว?", options: ["F1", "F2", "F3", "F4"], ans: 3 },
+                { q: "สูตร =10+5*2 จะได้ผลลัพธ์เท่าใด (ตามหลักคณิตศาสตร์)?", options: ["30", "20", "25", "17"], ans: 1 },
+                { q: "ลำดับความสำคัญของเครื่องหมายทางคณิตศาสตร์ข้อใดจะถูกคำนวณเป็นอันดับแรกสุดเสมอ?", options: ["บวก และ ลบ", "วงเล็บ ()", "คูณ และ หาร", "ยกกำลัง"], ans: 1 },
+                { q: "ฟังก์ชันใดใช้สำหรับหาผลรวมของตัวเลขในช่วงข้อมูลที่กำหนด?", options: ["COUNT", "AVERAGE", "SUM", "MAX"], ans: 2 },
+                { q: "หากอ้างอิงเซลล์แบบ $A$1 เมื่อคัดลอก (Copy) สูตรลงมา 1 แถว สูตรจะเปลี่ยนเป็นอะไร?", options: ["$A$2", "$B$1", "$B$2", "$A$1 (เหมือนเดิม)"], ans: 3 },
+                { q: "ข้อผิดพลาด #DIV/0! หมายถึงอะไร?", options: ["ชื่อฟังก์ชันผิด", "อ้างอิงเซลล์ที่ว่างเปล่า", "มีตัวหารเป็นค่าศูนย์ (0)", "พื้นที่คอลัมน์ไม่พอ"], ans: 2 },
+                { q: "ฟังก์ชัน AVERAGE มีหน้าที่ทำสิ่งใด?", options: ["นับจำนวนข้อมูล", "หาค่าที่มากที่สุด", "หาค่าที่น้อยที่สุด", "หาค่าเฉลี่ย"], ans: 3 }
+            ],
+            5: [ // หน่วยที่ 5: การสร้างกราฟ
+                { q: "กราฟชนิดใดเหมาะสมที่สุดในการแสดงสัดส่วนของข้อมูลเมื่อเทียบกับผลรวมทั้งหมด (100%)?", options: ["กราฟแท่ง (Column Chart)", "กราฟเส้น (Line Chart)", "กราฟวงกลม (Pie Chart)", "กราฟจุด (Scatter Chart)"], ans: 2 },
+                { q: "เมนูในการสร้างกราฟ (Chart) อยู่ในแท็บใด?", options: ["Home", "Insert", "Page Layout", "Formulas"], ans: 1 },
+                { q: "Legend ในส่วนประกอบของกราฟ หมายถึงอะไร?", options: ["ชื่อกราฟ", "ป้ายชื่อข้อมูลบนแท่งกราฟ", "คำอธิบายสัญลักษณ์/สีของข้อมูล", "เส้นตารางด้านหลัง"], ans: 2 },
+                { q: "หากต้องการเปลี่ยนชนิดของกราฟที่สร้างไปแล้ว ต้องใช้คำสั่งใด?", options: ["Change Chart Type", "Switch Row/Column", "Select Data", "Move Chart"], ans: 0 },
+                { q: "กราฟชนิดใดเหมาะสำหรับแสดงการเปลี่ยนแปลงของข้อมูลตามระยะเวลา (เช่น ยอดขายรายเดือน)?", options: ["Pie Chart", "Line Chart", "Radar Chart", "Doughnut Chart"], ans: 1 },
+                { q: "กราฟแท่งแนวนอน (Bar Chart) มีลักษณะเด่นอย่างไรเมื่อเทียบกับ Column Chart?", options: ["เป็นกราฟวงกลม", "แสดงแท่งข้อมูลจากซ้ายไปขวา (แนวนอน)", "แสดงผลแบบสามมิติเท่านั้น", "ใช้เทียบข้อมูลไม่ได้"], ans: 1 },
+                { q: "เส้นที่แสดงทิศทางแนวโน้มของกราฟเรียกว่าอะไร?", options: ["Gridlines", "Error Bars", "Trendline", "Data Table"], ans: 2 },
+                { q: "แกนข้อมูลแนวตั้งของกราฟ (ที่แสดงเป็นตัวเลข) มักจะเรียกว่าอะไร?", options: ["แกน X", "แกน Y", "แกน Z", "แกน W"], ans: 1 },
+                { q: "หากต้องการย้ายกราฟไปแสดงในแผ่นงานใหม่แยกต่างหาก (Chart Sheet) ต้องเลือกคำสั่งใด?", options: ["Move Chart > New Sheet", "Cut and Paste", "Export Chart", "Save As Picture"], ans: 0 },
+                { q: "กราฟขนาดเล็กที่แทรกอยู่ในเซลล์ๆ เดียว เพื่อแสดงแนวโน้มอย่างรวดเร็ว เรียกว่าอะไร?", options: ["Micro Chart", "Mini Line", "Sparklines", "Cell Graph"], ans: 2 }
+            ],
+            6: [ // หน่วยที่ 6: การกรองข้อมูล
+                { q: "เครื่องมือใดใช้สำหรับจัดเรียงข้อมูลตามตัวอักษร จาก ก ไป ฮ?", options: ["Filter", "Sort A to Z", "Find", "Replace"], ans: 1 },
+                { q: "เครื่องมือใดใช้ซ่อนข้อมูลที่ไม่ต้องการดูชั่วคราว เพื่อแสดงเฉพาะข้อมูลที่ตรงตามเงื่อนไข?", options: ["Sort", "Find", "Filter", "Group"], ans: 2 },
+                { q: "เมื่อใช้คำสั่ง Filter จะมีสัญลักษณ์ใดปรากฏที่หัวคอลัมน์?", options: ["รูปแว่นขยาย", "รูปปุ่มลูกศรชี้ลง", "รูปกากบาท", "รูปดินสอ"], ans: 1 },
+                { q: "หากต้องการกรองให้แสดงเฉพาะตัวเลขที่ 'มากกว่า 50' ต้องเลือกเงื่อนไขตัวกรองตัวเลขแบบใด?", options: ["Equals...", "Less Than...", "Greater Than...", "Between..."], ans: 2 },
+                { q: "การยกเลิกการกรองเพื่อให้ข้อมูลกลับมาแสดงทั้งหมด ต้องกดปุ่มใด?", options: ["Clear Filter", "Delete Filter", "Sort All", "Show Hidden"], ans: 0 },
+                { q: "การจัดเรียงข้อมูล (Sort) ใน Excel สามารถทำได้กี่ระดับ (Levels)?", options: ["ระดับเดียวเท่านั้น", "สูงสุด 2 ระดับ", "หลายระดับ (Multiple Levels)", "ทำไม่ได้"], ans: 2 },
+                { q: "ในตัวกรองข้อความ (Text Filters) คำสั่งใดหมายถึง 'ลงท้ายด้วย'?", options: ["Begins With...", "Ends With...", "Contains...", "Does Not Contain..."], ans: 1 },
+                { q: "นอกจากการเรียงตามค่าตัวอักษร/ตัวเลขแล้ว คำสั่ง Sort ยังสามารถเรียงข้อมูลตามสิ่งใดได้อีก?", options: ["เรียงตามสีเซลล์ (Cell Color)", "เรียงตามวันที่สร้างไฟล์", "เรียงตามขนาดตัวอักษร", "เรียงตามความกว้างคอลัมน์"], ans: 0 },
+                { q: "Advanced Filter มีข้อดีที่เหนือกว่า Filter ปกติในเรื่องใด?", options: ["กรองได้เร็วกว่า", "สามารถส่งออกผลลัพธ์ที่กรองแล้ว ไปวางที่บริเวณอื่นของแผ่นงานได้ทันที", "ลบข้อมูลที่ไม่ได้กรองทิ้ง", "แปลงข้อมูลเป็นกราฟอัตโนมัติ"], ans: 1 },
+                { q: "สัญลักษณ์รูป 'กรวยกรองน้ำ' (Funnel) ในแท็บ Data หมายถึงคำสั่งใด?", options: ["Subtotal", "Consolidate", "Filter", "Data Validation"], ans: 2 }
+            ],
+            7: [ // หน่วยที่ 7: Pivot Table
+                { q: "PivotTable คือเครื่องมือสำหรับทำอะไร?", options: ["สร้างตารางฐานข้อมูลใหม่", "สรุปผลและวิเคราะห์ข้อมูลปริมาณมากอย่างรวดเร็ว", "แปลงไฟล์ Excel เป็น PDF", "ใช้สำหรับพิมพเอกสารเท่านั้น"], ans: 1 },
+                { q: "ข้อใดคือสิ่งที่ห้ามมีในตารางต้นฉบับก่อนทำ PivotTable?", options: ["ข้อมูลตัวเลข", "แถวหรือคอลัมน์ที่ว่างเปล่าคั่นกลางตาราง", "การจัดรูปแบบสี", "สูตรคำนวณ"], ans: 1 },
+                { q: "พื้นที่ (Area) ใดใน PivotTable ที่ใช้สำหรับแสดงผลลัพธ์การคำนวณเชิงตัวเลข?", options: ["Filters", "Columns", "Rows", "Values"], ans: 3 },
+                { q: "หากนำข้อมูล 'วันที่' ไปวางในพื้นที่ Rows ของ PivotTable (ใน Excel รุ่นใหม่) จะเกิดอะไรขึ้น?", options: ["ข้อมูลจะ Error", "โปรแกรมจะจัดกลุ่มเป็น เดือน/ปี ให้อัตโนมัติ", "วันที่ทั้งหมดจะถูกลบทิ้ง", "วันที่เปลี่ยนเป็นข้อความ"], ans: 1 },
+                { q: "เมื่อข้อมูลต้นทางมีการเปลี่ยนแปลงหรือเพิ่มเติม ต้องทำอย่างไรเพื่อให้ PivotTable อัปเดต?", options: ["กดปุ่ม Refresh (รีเฟรช)", "ต้องสร้าง PivotTable ใหม่เท่านั้น", "รีสตาร์ทคอมพิวเตอร์", "ลบแล้วพิมพ์ข้อมูลใหม่"], ans: 0 },
+                { q: "หากต้องการนำคอลัมน์มาทำเป็นหัวข้อกระจายออกไปทางแนวนอนด้านบนของ PivotTable ต้องลากฟิลด์ไปที่พื้นที่ใด?", options: ["Filters", "Columns", "Rows", "Values"], ans: 1 },
+                { q: "เครื่องมือ Slicer ใช้ทำหน้าที่อะไรใน PivotTable?", options: ["เปลี่ยนสีตาราง", "กรองข้อมูล (Filter) ด้วยปุ่มกดที่สวยงามและดูง่าย", "สร้างกราฟแบบด่วน", "ส่งออกไฟล์"], ans: 1 },
+                { q: "การจัดกลุ่มข้อมูล (Group) ใน PivotTable สามารถทำกับข้อมูลประเภทใดให้กลายเป็น ไตรมาส (Quarter) ได้?", options: ["ตัวเลขทั่วไป", "ข้อความยาวๆ", "วันที่ (Date)", "สกุลเงิน"], ans: 2 },
+                { q: "Calculated Field ในเครื่องมือ PivotTable คืออะไร?", options: ["เซลล์ที่เกิดข้อผิดพลาด", "การสร้างฟิลด์คำนวณใหม่ขึ้นมาเองจากฟิลด์เดิมที่มีอยู่ (เช่น เอายอดขาย หัก ต้นทุน)", "การนับจำนวนข้อมูลที่ว่าง", "เครื่องมือล้างรูปแบบข้อมูล"], ans: 1 },
+                { q: "หากต้องการเปลี่ยนวิธีการคำนวณในพื้นที่ Values จาก ผลรวม (SUM) เป็น หาค่าเฉลี่ย (AVERAGE) ต้องไปตั้งค่าที่ใด?", options: ["Value Field Settings", "PivotTable Options", "Field List", "Sort & Filter"], ans: 0 }
+            ],
+            8: [ // หน่วยที่ 8: การทำงานกับฐานข้อมูล
+                { q: "เครื่องมือใดใช้ป้องกันไม่ให้ผู้ใช้กรอกข้อมูลผิดพลาด เช่น บังคับให้พิมพ์เฉพาะตัวเลข 1-10 เท่านั้น?", options: ["Conditional Formatting", "Data Validation", "Text to Columns", "Remove Duplicates"], ans: 1 },
+                { q: "เครื่องมือใดใช้สำหรับแยกข้อความที่อยู่ในเซลล์เดียวกัน (เช่น 'นายเอ นามสมมติ') ออกเป็น 2 คอลัมน์?", options: ["Flash Fill", "Merge Cells", "Text to Columns", "Consolidate"], ans: 2 },
+                { q: "ฟังก์ชันใดในกลุ่มฐานข้อมูลที่นิยมใช้ค้นหาข้อมูลโดยดึงค่าจากคอลัมน์อื่นมาแสดง (ค้นหาในแนวตั้ง)?", options: ["VLOOKUP", "SUMIF", "COUNT", "IF"], ans: 0 },
+                { q: "การลบรายการข้อมูลที่มีความซ้ำซ้อนกันในตารางให้เหลือเพียงรายการเดียว ใช้คำสั่งใด?", options: ["Delete Cells", "Remove Duplicates", "Clear Contents", "Filter Text"], ans: 1 },
+                { q: "เครื่องมือ Conditional Formatting (การจัดรูปแบบตามเงื่อนไข) มีประโยชน์อย่างไร?", options: ["ใช้สร้างตารางอัตโนมัติ", "เปลี่ยนสีพื้นหลังหรือสีตัวอักษรอัตโนมัติเมื่อข้อมูลเข้าเงื่อนไขที่ตั้งไว้", "ใช้ค้นหาข้อมูลที่ซ่อนอยู่", "ใช้รวมไฟล์งาน Excel หลายไฟล์เข้าด้วยกัน"], ans: 1 },
+                { q: "ข้อใดคือเป้าหมายหลักของการใช้ Data Validation?", options: ["ตรวจสอบว่าสูตรผิดหรือไม่", "สร้างปุ่มกดเล่นกราฟิก", "จำกัดและลดข้อผิดพลาดในการป้อนข้อมูลของผู้ใช้", "แปลงข้อมูลเป็นไฟล์ PDF"], ans: 2 },
+                { q: "ค่า Argument สุดท้าย (Range_lookup) ในฟังก์ชัน VLOOKUP หากต้องการค้นหาแบบ 'ตรงกันเป๊ะ' (Exact Match) ต้องใส่ค่าใด?", options: ["1 หรือ TRUE", "0 หรือ FALSE", "เว้นว่างไว้", "-1"], ans: 1 },
+                { q: "คำสั่งใดใช้รวบรวมข้อมูลจากหลายๆ ช่วง (เช่น ชีตเดือน 1, เดือน 2, เดือน 3) มาสรุปผลรวมเข้าด้วยกัน?", options: ["Text to Columns", "Group", "Consolidate", "What-If Analysis"], ans: 2 },
+                { q: "หากต้องการสร้างรายการตัวเลือก (Drop-down List) ให้คนคลิกเลือกแทนการพิมพ์พิมพ์เอง ในช่อง Data Validation ต้องเลือก Allow แบบใด?", options: ["Whole number", "Text length", "Date", "List"], ans: 3 },
+                { q: "คำสั่ง Freeze Panes มีประโยชน์อย่างไรในการจัดการฐานข้อมูล?", options: ["ป้องกันการลบข้อมูล", "ล็อกหัวตารางไว้ไม่ให้เลื่อนหายไปเวลาเราเลื่อนหน้าจอลงไปดูข้อมูลด้านล่าง", "แช่แข็งโปรแกรม", "ล็อกสีพื้นหลังเซลล์"], ans: 1 }
+            ]
+        };
+
+        function startUnitTest(unitNum) {
+            currentUnitTestSet = unitNum;
+            document.getElementById('content-menu').classList.add('hidden');
+            document.getElementById('unit-test-result-container').classList.add('hidden');
+            document.getElementById('unit-test-exam-container').classList.remove('hidden');
+            
+            document.getElementById('unit-test-exam-title').innerText = `แบบทดสอบท้ายหน่วยที่ ${unitNum}`;
+            
+            const area = document.getElementById('unit-test-questions-area');
+            area.innerHTML = ''; 
+
+            const questions = unitTestData[unitNum];
+            questions.forEach((item, index) => {
+                let html = `
+                <div class="bg-white rounded-[20px] p-6 border border-gray-100 shadow-sm border-l-4 border-l-blue-500">
+                    <p class="font-extrabold text-slate-800 mb-4 text-lg"><span class="text-blue-600 mr-1">${index + 1}.</span> ${item.q}</p>
+                    <div class="space-y-3 pl-2">
+                `;
+                
+                item.options.forEach((opt, optIndex) => {
+                    html += `
+                        <label class="flex items-center p-3.5 border border-gray-100 rounded-xl hover:bg-blue-50 hover:border-blue-200 cursor-pointer transition">
+                            <input type="radio" name="uq${index}" value="${optIndex}" class="w-4 h-4 text-blue-600 focus:ring-blue-500" required>
+                            <span class="ml-3 text-slate-700 font-medium">${opt}</span>
+                        </label>
+                    `;
+                });
+
+                html += `</div></div>`;
+                area.innerHTML += html;
+            });
+            window.scrollTo(0, 0);
+        }
+
+        function submitUnitTest(e) {
+            e.preventDefault();
+            const form = e.target;
+            const questions = unitTestData[currentUnitTestSet];
+            let score = 0;
+
+            questions.forEach((item, index) => {
+                const selected = form.elements[`uq${index}`].value;
+                if(selected && parseInt(selected) === item.ans) {
+                    score++;
+                }
+            });
+
+            document.getElementById('unit-test-exam-container').classList.add('hidden');
+            document.getElementById('unit-test-score').innerText = score;
+            document.getElementById('unit-test-result-container').classList.remove('hidden');
+            window.scrollTo(0, 0);
+        }
+
+        function backToContentMenu() {
+            document.getElementById('unit-test-exam-container').classList.add('hidden');
+            document.getElementById('unit-test-result-container').classList.add('hidden');
+            document.getElementById('content-menu').classList.remove('hidden');
+            document.getElementById('unit-test-form').reset();
+            window.scrollTo(0, 0);
+        }
+
+        // --- ระบบ Pre-Test (5 ชุด ชุดละ 20 ข้อ คำถามไม่ซ้ำกัน) ---
+        let currentPreTestSet = 1;
+        
+        const preTestData = {
+            1: [ // ชุดที่ 1: ความรู้เบื้องต้นและหน้าต่างโปรแกรม
+                { q: "ข้อใดคือโปรแกรมตารางคำนวณ?", options: ["Microsoft Word", "Microsoft Excel", "Microsoft PowerPoint", "Microsoft Access"], ans: 1 },
+                { q: "แฟ้มข้อมูลของ Excel เรียกว่าอะไร?", options: ["Document", "Presentation", "Workbook", "Database"], ans: 2 },
+                { q: "แผ่นงานย่อยใน Excel เรียกว่าอะไร?", options: ["Page", "Slide", "Worksheet", "Table"], ans: 2 },
+                { q: "จุดตัดระหว่างแถวและคอลัมน์เรียกว่าอะไร?", options: ["Row", "Column", "Cell", "Range"], ans: 2 },
+                { q: "คอลัมน์ (Column) ใน Excel แทนด้วยอะไร?", options: ["ตัวเลข", "ตัวอักษรภาษาไทย", "ตัวอักษรภาษาอังกฤษ", "สัญลักษณ์"], ans: 2 },
+                { q: "แถว (Row) ใน Excel แทนด้วยอะไร?", options: ["ตัวเลข", "ตัวอักษรภาษาไทย", "ตัวอักษรภาษาอังกฤษ", "สัญลักษณ์"], ans: 0 },
+                { q: "นามสกุลไฟล์มาตรฐานของ Excel 2007 ขึ้นไปคือข้อใด?", options: [".doc", ".xls", ".ppt", ".xlsx"], ans: 3 },
+                { q: "แถบที่แสดงชื่อไฟล์ที่กำลังเปิดใช้งานอยู่คือข้อใด?", options: ["Status bar", "Menu bar", "Title bar", "Taskbar"], ans: 2 },
+                { q: "บริเวณที่ใช้พิมพ์หรือแก้ไขข้อมูล/สูตร เรียกว่าอะไร?", options: ["Name Box", "Formula bar", "Scroll bar", "Ribbon"], ans: 1 },
+                { q: "หากต้องการบันทึกข้อมูลทับไฟล์เดิม ต้องใช้ปุ่มใด?", options: ["Save As", "Save", "Open", "New"], ans: 1 },
+                { q: "หากต้องการสร้างไฟล์งานใหม่ ต้องไปที่แท็บเมนูใด?", options: ["Home", "Insert", "Page Layout", "File"], ans: 3 },
+                { q: "Cell A1 หมายถึงข้อใด?", options: ["แถว A คอลัมน์ 1", "คอลัมน์ A แถว 1", "ชีต A ไฟล์ 1", "ชีต 1 ไฟล์ A"], ans: 1 },
+                { q: "กลุ่มของเซลล์หลายๆ เซลล์ที่ถูกเลือกพร้อมกันเรียกว่าอะไร?", options: ["Group", "Range", "Set", "Block"], ans: 1 },
+                { q: "ปุ่มคีย์ลัดสำหรับคัดลอก (Copy) ข้อมูลคือข้อใด?", options: ["Ctrl + C", "Ctrl + V", "Ctrl + X", "Ctrl + Z"], ans: 0 },
+                { q: "ปุ่มคีย์ลัดสำหรับวาง (Paste) ข้อมูลคือข้อใด?", options: ["Ctrl + C", "Ctrl + V", "Ctrl + X", "Ctrl + Z"], ans: 1 },
+                { q: "ปุ่มคีย์ลัดสำหรับเลิกทำ (Undo) คือข้อใด?", options: ["Ctrl + C", "Ctrl + V", "Ctrl + X", "Ctrl + Z"], ans: 3 },
+                { q: "มุมมองเริ่มต้นปกติของแผ่นงานคือข้อใด?", options: ["Page Layout", "Page Break Preview", "Normal", "Full Screen"], ans: 2 },
+                { q: "หากต้องการย่อ-ขยายหน้าจอ ต้องใช้เครื่องมือใด?", options: ["Scroll bar", "Zoom Slider", "View Tab", "Magnifier"], ans: 1 },
+                { q: "เมนูใดใช้สำหรับเปลี่ยนรูปแบบตัวอักษร (Font)?", options: ["File", "Home", "Insert", "Data"], ans: 1 },
+                { q: "ข้อใดไม่ใช่ส่วนประกอบของหน้าต่างโปรแกรม Excel?", options: ["Ribbon", "Formula bar", "Status bar", "Control Panel"], ans: 3 }
+            ],
+            2: [ // ชุดที่ 2: การป้อนข้อมูลและการจัดรูปแบบ
+                { q: "ข้อมูลประเภทใดไม่สามารถนำมาบวก ลบ คูณ หาร ได้โดยตรง?", options: ["ตัวเลข (Number)", "วันที่ (Date)", "ข้อความ (Text)", "เวลา (Time)"], ans: 2 },
+                { q: "คำสั่งใดใช้เพิ่มเครื่องหมายจุลภาค (,) ในหลักพัน?", options: ["Percent Style", "Comma Style", "Currency Style", "Accounting Style"], ans: 1 },
+                { q: "โดยปกติเมื่อพิมพ์ตัวเลข Excel จะจัดข้อมูลชิดด้านใดของเซลล์?", options: ["ชิดซ้าย", "กึ่งกลาง", "ชิดขวา", "กระจายพอดี"], ans: 2 },
+                { q: "โดยปกติเมื่อพิมพ์ตัวอักษร Excel จะจัดข้อมูลชิดด้านใดของเซลล์?", options: ["ชิดซ้าย", "กึ่งกลาง", "ชิดขวา", "กระจายพอดี"], ans: 0 },
+                { q: "สัญลักษณ์ ###### ในเซลล์ หมายความว่าอย่างไร?", options: ["สูตรผิดพลาด", "คอลัมน์แคบเกินไป", "ชนิดข้อมูลไม่ถูกต้อง", "ติดไวรัส"], ans: 1 },
+                { q: "หากต้องการรวมเซลล์หลายเซลล์เข้าด้วยกัน ต้องใช้คำสั่งใด?", options: ["Wrap Text", "Merge & Center", "Center Across", "Combine Cells"], ans: 1 },
+                { q: "หากพิมพ์ข้อความยาวเกินเซลล์ และต้องการให้ขึ้นบรรทัดใหม่ในเซลล์เดิม ต้องใช้คำสั่งใด?", options: ["Wrap Text", "Merge Cells", "Shrink to fit", "AutoFit"], ans: 0 },
+                { q: "คำสั่งใดใช้สำหรับตีเส้นตารางให้ข้อมูล?", options: ["Fill Color", "Font Color", "Borders", "Styles"], ans: 2 },
+                { q: "คำสั่ง Fill Color มีหน้าที่อะไร?", options: ["เปลี่ยนสีตัวอักษร", "เปลี่ยนสีพื้นหลังเซลล์", "เปลี่ยนสีเส้นขอบ", "ไล่เฉดสีหน้าจอ"], ans: 1 },
+                { q: "ข้อใดคือรูปแบบตัวเลขแบบสกุลเงินที่มีสัญลักษณ์ ฿ นำหน้า?", options: ["Number", "Currency", "Fraction", "Scientific"], ans: 1 },
+                { q: "หากต้องการให้ตัวเลขแสดงเป็นเปอร์เซ็นต์ ต้องเลือกรูปแบบใด?", options: ["Percentage", "Text", "General", "Custom"], ans: 0 },
+                { q: "แปรงทาสี (Format Painter) ใช้ทำหน้าที่อะไร?", options: ["ลบข้อมูล", "วาดรูปภาพ", "คัดลอกรูปแบบ", "ระบายสีเซลล์"], ans: 2 },
+                { q: "วิธีใดใช้เปลี่ยนชื่อ Worksheet ได้เร็วที่สุด?", options: ["คลิกขวาเลือก Delete", "ดับเบิลคลิกที่แท็บชื่อ Sheet", "ไปที่เมนู File > Rename", "กดปุ่ม F2"], ans: 1 },
+                { q: "ข้อใดคือวิธีการแทรกแถว (Row) ใหม่?", options: ["Insert > Sheet Rows", "Insert > Sheet Columns", "Delete > Sheet Rows", "Format > Row Height"], ans: 0 },
+                { q: "การลบคอลัมน์ B ทิ้ง ต้องคลิกขวาที่ส่วนใด?", options: ["เซลล์ B1", "หัวคอลัมน์ตัวอักษร B", "หมายเลขแถวที่ 2", "แท็บ Sheet1"], ans: 1 },
+                { q: "วิธีปรับความกว้างคอลัมน์ให้พอดีกับข้อความอัตโนมัติ (AutoFit) คือข้อใด?", options: ["กดลากให้กว้างขึ้น", "ดับเบิลคลิกที่เส้นแบ่งหัวคอลัมน์", "คลิกขวาเลือก Hide", "กดปุ่ม Enter"], ans: 1 },
+                { q: "คุณสมบัติ AutoFill (เติมอัตโนมัติ) มีประโยชน์อย่างไร?", options: ["ช่วยเซฟไฟล์ออโต้", "ช่วยพิมพ์ข้อมูลที่เรียงลำดับให้รวดเร็ว", "ช่วยแก้ไขคำผิด", "ช่วยวาดกราฟอัตโนมัติ"], ans: 1 },
+                { q: "หากพิมพ์ 'จันทร์' แล้วลากจุด AutoFill ลงมา เซลล์ถัดไปจะแสดงค่าใด?", options: ["จันทร์", "พุธ", "อังคาร", "Jan"], ans: 2 },
+                { q: "ปุ่มคีย์ลัด Ctrl + B ทำหน้าที่อะไร?", options: ["ตัวเอียง", "ขีดเส้นใต้", "เปลี่ยนสี", "ตัวหนา"], ans: 3 },
+                { q: "ปุ่มคีย์ลัด Ctrl + U ทำหน้าที่อะไร?", options: ["ตัวเอียง", "ขีดเส้นใต้", "เปลี่ยนสี", "ตัวหนา"], ans: 1 }
+            ],
+            3: [ // ชุดที่ 3: การใช้สูตรและฟังก์ชันเบื้องต้น
+                { q: "การพิมพ์สูตรคำนวณใน Excel ต้องเริ่มต้นด้วยเครื่องหมายใดเสมอ?", options: ["+", "-", "=", "#"], ans: 2 },
+                { q: "เครื่องหมายใดใช้สำหรับการคูณในสมการของ Excel?", options: ["x", "*", "/", "X"], ans: 1 },
+                { q: "เครื่องหมายใดใช้สำหรับการหารในสมการของ Excel?", options: ["/", "\\", "÷", "%"], ans: 0 },
+                { q: "เครื่องหมายใดใช้สำหรับการยกกำลังใน Excel?", options: ["^", "*", "&", "~"], ans: 0 },
+                { q: "ฟังก์ชันใดใช้สำหรับหาผลรวมของกลุ่มตัวเลข?", options: ["AVERAGE", "MAX", "SUM", "MIN"], ans: 2 },
+                { q: "ฟังก์ชันใดใช้สำหรับหาค่าเฉลี่ย?", options: ["COUNT", "AVERAGE", "MEAN", "MEDIAN"], ans: 1 },
+                { q: "ฟังก์ชันใดใช้สำหรับหาค่าที่มากที่สุดในกลุ่มข้อมูล?", options: ["HIGH", "TOP", "MAX", "LARGE"], ans: 2 },
+                { q: "ฟังก์ชันใดใช้สำหรับหาค่าที่น้อยที่สุดในกลุ่มข้อมูล?", options: ["LOW", "BOTTOM", "MIN", "SMALL"], ans: 2 },
+                { q: "ฟังก์ชัน COUNT ใช้ทำอะไร?", options: ["หาผลรวม", "นับจำนวนเซลล์ที่มีตัวเลข", "หาค่าเฉลี่ย", "นับจำนวนเซลล์ที่ว่างเปล่า"], ans: 1 },
+                { q: "ฟังก์ชัน COUNTA แตกต่างจาก COUNT อย่างไร?", options: ["นับเฉพาะตัวเลข", "นับเฉพาะข้อความ", "นับเซลล์ที่ไม่ว่างทั้งหมด", "นับเซลล์ที่ว่างเปล่า"], ans: 2 },
+                { q: "การอ้างอิงเซลล์แบบ A1 เมื่อคัดลอกสูตร ตำแหน่งจะเปลี่ยนไป เรียกว่าการอ้างอิงแบบใด?", options: ["แบบสัมพัทธ์ (Relative)", "แบบสัมบูรณ์ (Absolute)", "แบบผสม (Mixed)", "แบบคงที่ (Fixed)"], ans: 0 },
+                { q: "ข้อใดคือลักษณะของการอ้างอิงเซลล์แบบสัมบูรณ์ (ล็อคเซลล์)?", options: ["A1", "A$1", "$A1", "$A$1"], ans: 3 },
+                { q: "ปุ่มใดบนคีย์บอร์ดใช้สำหรับสลับการล็อกเซลล์ (เพิ่มสัญลักษณ์ $)?", options: ["F1", "F2", "F3", "F4"], ans: 3 },
+                { q: "สูตร =A1+B1 หมายความว่าอย่างไร?", options: ["รวมตั้งแต่เซลล์ A1 ถึง B1", "นำค่าใน A1 บวกกับค่าใน B1", "เอา A1 ต่อกับ B1", "เปรียบเทียบ A1 กับ B1"], ans: 1 },
+                { q: "ในนิพจน์ =5+2*3 ผลลัพธ์ที่ได้คือเท่าใด (ตามหลักคณิตศาสตร์ใน Excel)?", options: ["21", "11", "10", "30"], ans: 1 },
+                { q: "ฟังก์ชันใดใช้สำหรับแทรกวันที่และเวลาปัจจุบันลงในเซลล์?", options: ["DATE()", "TIME()", "NOW()", "TODAY()"], ans: 2 },
+                { q: "ฟังก์ชันใดใช้สำหรับแทรกเฉพาะวันที่ปัจจุบันลงในเซลล์?", options: ["DATE()", "TIME()", "NOW()", "TODAY()"], ans: 3 },
+                { q: "หากเซลล์ A1 มีค่า 10 สูตร =A1>5 จะให้ผลลัพธ์เป็นอะไร?", options: ["10", "5", "TRUE", "FALSE"], ans: 2 },
+                { q: "ข้อผิดพลาด #DIV/0! ใน Excel เกิดจากสาเหตุใด?", options: ["พิมพ์ชื่อฟังก์ชันผิด", "ค่าที่ใช้คำนวณไม่ถูกต้อง", "มีตัวหารเป็นเลขศูนย์ (0)", "พื้นที่อ้างอิงกว้างเกินไป"], ans: 2 },
+                { q: "ข้อผิดพลาด #VALUE! หมายถึงอะไร?", options: ["นำข้อความไปคำนวณทางคณิตศาสตร์", "หาเซลล์ไม่พบ", "พื้นที่อ้างอิงถูกลบ", "คอลัมน์แคบเกินไป"], ans: 0 }
+            ],
+            4: [ // ชุดที่ 4: ฟังก์ชันเงื่อนไขและกราฟ
+                { q: "ฟังก์ชันใดใช้ตรวจสอบเงื่อนไข ถ้าจริงให้แสดงผลแบบหนึ่ง ถ้าเท็จให้แสดงอีกแบบหนึ่ง?", options: ["SUMIF", "COUNTIF", "IF", "VLOOKUP"], ans: 2 },
+                { q: "โครงสร้างที่ถูกต้องของฟังก์ชัน IF คือข้อใด?", options: ["=IF(จริง, เท็จ, เงื่อนไข)", "=IF(เงื่อนไข, ค่าเมื่อจริง, ค่าเมื่อเท็จ)", "=IF(ค่าเมื่อเท็จ, ค่าเมื่อจริง, เงื่อนไข)", "=IF(เงื่อนไข)"], ans: 1 },
+                { q: "ฟังก์ชันใดใช้หาผลรวมของข้อมูล โดยมีเงื่อนไขระบุไว้?", options: ["SUM", "SUMIF", "COUNTIF", "IF"], ans: 1 },
+                { q: "ฟังก์ชันใดใช้นับจำนวนเซลล์ตามเงื่อนไขที่กำหนด?", options: ["COUNT", "COUNTA", "COUNTBLANK", "COUNTIF"], ans: 3 },
+                { q: "เครื่องหมายใดใช้สำหรับเชื่อมข้อความสองเซลล์เข้าด้วยกัน (Concatenate)?", options: ["+", "&", "*", "@"], ans: 1 },
+                { q: "กราฟ (Chart) ชนิดใดเหมาะสมที่สุดสำหรับแสดงสัดส่วนร้อยละของข้อมูลเทียบกับทั้งหมด?", options: ["กราฟแท่ง (Column)", "กราฟเส้น (Line)", "กราฟวงกลม (Pie)", "กราฟจุด (Scatter)"], ans: 2 },
+                { q: "กราฟชนิดใดเหมาะสมที่สุดสำหรับเปรียบเทียบยอดขายระหว่างสินค้าหลายชนิด?", options: ["กราฟแท่ง (Column)", "กราฟเส้น (Line)", "กราฟวงกลม (Pie)", "กราฟโดนัท (Doughnut)"], ans: 0 },
+                { q: "กราฟชนิดใดเหมาะสมที่สุดสำหรับแสดงแนวโน้มของข้อมูลที่เปลี่ยนแปลงตามเวลา?", options: ["กราฟแท่ง (Column)", "กราฟเส้น (Line)", "กราฟวงกลม (Pie)", "กราฟเรดาร์ (Radar)"], ans: 1 },
+                { q: "หากต้องการสร้างกราฟ ต้องไปที่แท็บเมนูใด?", options: ["Home", "Insert", "Page Layout", "Data"], ans: 1 },
+                { q: "ส่วนที่ใช้อธิบายความหมายของสีหรือลวดลายในกราฟเรียกว่าอะไร?", options: ["Chart Title", "Data Labels", "Legend (คำอธิบายสัญลักษณ์)", "Axis"], ans: 2 },
+                { q: "แกนแนวนอนของกราฟแท่งโดยทั่วไปเรียกว่าแกนอะไร?", options: ["แกน X", "แกน Y", "แกน Z", "แกน Z แนวตั้ง"], ans: 0 },
+                { q: "เมื่อเปลี่ยนข้อมูลตัวเลขในตารางต้นทาง กราฟที่สร้างไว้จะเกิดอะไรขึ้น?", options: ["ต้องสร้างกราฟใหม่", "กราฟจะอัปเดตตามข้อมูลใหม่อัตโนมัติ", "กราฟจะแสดงเป็นหน้าว่าง", "มีหน้าต่างเตือนให้บันทึก"], ans: 1 },
+                { q: "Sparklines ใน Excel หมายถึงอะไร?", options: ["เอฟเฟกต์ประกายไฟตอนเปิดโปรแกรม", "กราฟขนาดเล็กที่แทรกลงในเซลล์เดียว", "เส้นกริดของตาราง", "รูปแบบตัวอักษรแบบพิเศษ"], ans: 1 },
+                { q: "คำสั่ง Print Area ใช้ทำอะไร?", options: ["พิมพ์เอกสารทั้งหมด", "แสดงตัวอย่างก่อนพิมพ์", "กำหนดเฉพาะพื้นที่ตารางที่ต้องการพิมพ์", "ตั้งค่าหน้ากระดาษ"], ans: 2 },
+                { q: "ปุ่มคีย์ลัดคำสั่ง Print (พิมพ์) คือข้อใด?", options: ["Ctrl + C", "Ctrl + P", "Ctrl + S", "Ctrl + V"], ans: 1 },
+                { q: "หากต้องการให้แถวหัวตารางพิมพ์ซ้ำออกมาในทุกๆ หน้ากระดาษ ต้องตั้งค่าที่คำสั่งใด?", options: ["Print Titles", "Page Setup", "Margins", "Orientation"], ans: 0 },
+                { q: "การตั้งค่ากระดาษแนวนอนเรียกว่าอะไรในภาษาอังกฤษ?", options: ["Portrait", "Landscape", "A4", "Letter"], ans: 1 },
+                { q: "มุมมองใดที่ช่วยให้ปรับขอบเขตหน้ากระดาษก่อนพิมพ์ได้ง่ายที่สุด (เห็นเส้นแบ่งหน้า)?", options: ["Normal", "Page Layout", "Page Break Preview", "Custom Views"], ans: 2 },
+                { q: "การลบกราฟทำได้อย่างไร?", options: ["คลิกที่กราฟแล้วกดปุ่ม Delete", "ไปที่เมนู File > Delete", "ดับเบิลคลิกกราฟ", "ซ่อนคอลัมน์ของกราฟ"], ans: 0 },
+                { q: "Data Labels ในองค์ประกอบกราฟ คืออะไร?", options: ["ชื่อกราฟ", "ป้ายชื่อแกน", "ตัวเลขหรือค่าที่แสดงกำกับบนแท่ง/จุดกราฟ", "ตารางข้อมูลด้านล่างกราฟ"], ans: 2 }
+            ],
+            5: [ // ชุดที่ 5: การจัดการข้อมูลและการวิเคราะห์ขั้นสูง
+                { q: "คำสั่งใดใช้สำหรับเรียงลำดับข้อมูล?", options: ["Filter", "Sort", "Find", "Group"], ans: 1 },
+                { q: "การเรียงลำดับข้อมูลตัวอักษรจาก ก ถึง ฮ เรียกว่าการเรียงแบบใด?", options: ["Ascending", "Descending", "Custom", "Random"], ans: 0 },
+                { q: "การเรียงลำดับข้อมูลตัวเลขจาก มาก ไป น้อย เรียกว่าการเรียงแบบใด?", options: ["Ascending", "Descending", "Custom", "Random"], ans: 1 },
+                { q: "คำสั่งใดใช้สำหรับซ่อนข้อมูลที่ไม่ต้องการชั่วคราว เพื่อดูเฉพาะข้อมูลที่ตรงตามเงื่อนไข?", options: ["Sort", "Filter (ตัวกรอง)", "Hide", "Delete"], ans: 1 },
+                { q: "สัญลักษณ์ใดปรากฏที่หัวคอลัมน์เมื่อเปิดใช้งานคำสั่ง Filter?", options: ["รูปแว่นขยาย", "รูปลูกศรชี้ขึ้น", "รูปปุ่มลูกศรชี้ลง (Drop-down)", "รูปกากบาท"], ans: 2 },
+                { q: "ปุ่มคีย์ลัดสำหรับเปิดหน้าต่าง ค้นหา (Find) คืออะไร?", options: ["Ctrl + F", "Ctrl + H", "Ctrl + G", "Ctrl + R"], ans: 0 },
+                { q: "ปุ่มคีย์ลัดสำหรับเปิดหน้าต่าง ค้นหาและแทนที่ (Replace) คืออะไร?", options: ["Ctrl + F", "Ctrl + H", "Ctrl + G", "Ctrl + R"], ans: 1 },
+                { q: "เครื่องมือ Data Validation (การตรวจสอบความถูกต้องของข้อมูล) มีประโยชน์อย่างไร?", options: ["ตรวจสอบคำผิด", "บังคับหรือจำกัดให้ป้อนข้อมูลตามเงื่อนไขที่กำหนดเท่านั้น", "ตรวจสอบไวรัส", "คำนวณภาษีอัตโนมัติ"], ans: 1 },
+                { q: "หากต้องการสร้างรายการตัวเลือก (Drop-down list) ในเซลล์ ต้องใช้คำสั่งใด?", options: ["Data Validation", "Filter", "Consolidate", "What-If Analysis"], ans: 0 },
+                { q: "คำสั่ง Protect Sheet มีไว้เพื่ออะไร?", options: ["ป้องกันไวรัส", "ซ่อนแผ่นงานไม่ให้ใครเห็น", "ล็อกเซลล์ไม่ให้ถูกแก้ไขหรือลบโดยไม่ตั้งใจ", "ตั้งรหัสผ่านตอนเปิดเครื่อง"], ans: 2 },
+                { q: "เครื่องมือใดทรงพลังที่สุดในการสรุปผลและวิเคราะห์ข้อมูลปริมาณมากๆ ในเวลาอันรวดเร็ว?", options: ["VLOOKUP", "Pivot Table", "Conditional Formatting", "Subtotal"], ans: 1 },
+                { q: "ฟังก์ชัน VLOOKUP ใช้ค้นหาข้อมูลในลักษณะใด?", options: ["ค้นหาแนวนอน (ซ้ายไปขวา)", "ค้นหาแนวตั้ง (บนลงล่าง)", "ค้นหาแนวทแยง", "ค้นหาแบบสุ่ม"], ans: 1 },
+                { q: "ฟังก์ชัน HLOOKUP ใช้ค้นหาข้อมูลในลักษณะใด?", options: ["ค้นหาแนวนอน (ซ้ายไปขวา)", "ค้นหาแนวตั้ง (บนลงล่าง)", "ค้นหาแนวทแยง", "ค้นหาแบบสุ่ม"], ans: 0 },
+                { q: "ในสูตร =VLOOKUP(A1, ตาราง, 2, FALSE) คำว่า FALSE หมายถึงอะไร?", options: ["ค้นหาค่าที่ใกล้เคียงที่สุด", "ค้นหาค่าที่ตรงกันเป๊ะทุกประการ (Exact Match)", "ให้แสดงข้อความเท็จ", "ปิดการทำงานฟังก์ชัน"], ans: 1 },
+                { q: "คำสั่ง Text to Columns (ข้อความเป็นคอลัมน์) ใช้ทำอะไร?", options: ["แยกข้อความใน 1 เซลล์ ออกเป็นหลายคอลัมน์โดยใช้ตัวคั่น", "รวมหลายคอลัมน์เป็นเซลล์เดียว", "เปลี่ยนสีตัวอักษร", "นับจำนวนคำในคอลัมน์"], ans: 0 },
+                { q: "หากมีข้อมูลซ้ำซ้อนในตารางและต้องการลบรายการที่ซ้ำออก ต้องใช้คำสั่งใด?", options: ["Clear All", "Remove Duplicates", "Delete Cells", "Data Validation"], ans: 1 },
+                { q: "Conditional Formatting (การจัดรูปแบบตามเงื่อนไข) คืออะไร?", options: ["การเปลี่ยนสีตารางสลับฟันปลา", "การเปลี่ยนสีพื้นหลัง/ตัวอักษรอัตโนมัติเมื่อข้อมูลเข้าเงื่อนไข", "การสร้างกราฟ", "การสร้างสูตร"], ans: 1 },
+                { q: "เครื่องมือใดใช้ตรึงหัวตารางไม่ให้เลื่อนหายไปเวลาเราเลื่อนเมาส์ดูข้อมูลด้านล่าง?", options: ["Split", "Freeze Panes", "Hide View", "Lock Cells"], ans: 1 },
+                { q: "คำสั่งใดใช้จัดรูปแบบตารางอย่างรวดเร็วและสามารถเพิ่ม Filter ให้อัตโนมัติ (Ctrl+T)?", options: ["Format as Table", "Cell Styles", "Themes", "Table Outline"], ans: 0 },
+                { q: "นามสกุลไฟล์ Excel ที่มีการเขียนโปรแกรมชุดคำสั่ง (Macro) คือข้อใด?", options: [".xlsx", ".xls", ".xlsm", ".csv"], ans: 2 }
+            ]
+        };
+
+        function startPreTest(setNum) {
+            currentPreTestSet = setNum;
+            document.getElementById('pretest-menu').classList.add('hidden');
+            document.getElementById('pretest-result-container').classList.add('hidden');
+            document.getElementById('pretest-exam-container').classList.remove('hidden');
+            
+            document.getElementById('pretest-exam-title').innerText = `แบบทดสอบ ชุดที่ ${setNum}`;
+            
+            const area = document.getElementById('pretest-questions-area');
+            area.innerHTML = ''; 
+
+            const questions = preTestData[setNum];
+            questions.forEach((item, index) => {
+                let html = `
+                <div class="bg-white rounded-[20px] p-6 border border-gray-100 shadow-sm border-l-4 border-l-[#DDA020]">
+                    <p class="font-extrabold text-slate-800 mb-4 text-lg"><span class="text-[#DDA020] mr-1">${index + 1}.</span> ${item.q}</p>
+                    <div class="space-y-3 pl-2">
+                `;
+                
+                item.options.forEach((opt, optIndex) => {
+                    html += `
+                        <label class="flex items-center p-3.5 border border-gray-100 rounded-xl hover:bg-[#FFFCF3] hover:border-[#FDF0D5] cursor-pointer transition">
+                            <input type="radio" name="q${index}" value="${optIndex}" class="w-4 h-4 text-[#DDA020] focus:ring-[#DDA020]" required>
+                            <span class="ml-3 text-slate-700 font-medium">${opt}</span>
+                        </label>
+                    `;
+                });
+
+                html += `</div></div>`;
+                area.innerHTML += html;
+            });
+            window.scrollTo(0, 0);
+        }
+
+        function submitPreTest(e) {
+            e.preventDefault();
+            const form = e.target;
+            const questions = preTestData[currentPreTestSet];
+            let score = 0;
+
+            questions.forEach((item, index) => {
+                const selected = form.elements[`q${index}`].value;
+                if(selected && parseInt(selected) === item.ans) {
+                    score++;
+                }
+            });
+
+            document.getElementById('pretest-exam-container').classList.add('hidden');
+            document.getElementById('pretest-score').innerText = score;
+            document.getElementById('pretest-result-container').classList.remove('hidden');
+            window.scrollTo(0, 0);
+        }
+
+        function backToPreTestMenu() {
+            document.getElementById('pretest-exam-container').classList.add('hidden');
+            document.getElementById('pretest-result-container').classList.add('hidden');
+            document.getElementById('pretest-menu').classList.remove('hidden');
+            document.getElementById('pretest-form').reset();
+            window.scrollTo(0, 0);
+        }
+        
+        // --- ระบบ Post-Test (5 ชุด ชุดละ 20 ข้อ คำถามไม่ซ้ำกับ Pre-Test) ---
+        let currentPostTestSet = 1;
+        
+        const postTestData = {
+            1: [ // Post-Test ชุดที่ 1
+                { q: "ส่วนใดของหน้าจอ Excel ที่ใช้สำหรับแสดงและแก้ไขสูตร?", options: ["Status Bar", "Name Box", "Formula Bar", "Quick Access Toolbar"], ans: 2 },
+                { q: "หากต้องการเพิ่ม Worksheet ใหม่ ควรใช้แป้นพิมพ์ลัดใด?", options: ["Shift + F11", "Ctrl + N", "Alt + Enter", "Ctrl + W"], ans: 0 },
+                { q: "ข้อใดคือวิธีการเลือกเซลล์ทั้งหมดในแผ่นงาน (Select All)?", options: ["คลิกที่มุมซ้ายบนของหัวตาราง", "กด Ctrl + A", "ถูกต้องทั้งสองข้อ", "ไม่มีข้อถูก"], ans: 2 },
+                { q: "Template ใน Excel หมายถึงอะไร?", options: ["ไฟล์รูปภาพ", "ไฟล์แม่แบบที่ตั้งค่าไว้แล้ว", "ไฟล์ที่ติดไวรัส", "ไฟล์ฐานข้อมูลขั้นสูง"], ans: 1 },
+                { q: "หากต้องการบันทึกไฟล์เป็น PDF ต้องเลือกเมนูใด?", options: ["File > Print", "File > Save As > เลือกชนิดไฟล์ PDF", "Home > Save PDF", "Insert > PDF"], ans: 1 },
+                { q: "ใน Excel 1 Worksheet มีจำนวนแถวสูงสุดประมาณเท่าใด?", options: ["65,536 แถว", "100,000 แถว", "1,048,576 แถว", "ไม่จำกัดจำนวน"], ans: 2 },
+                { q: "ปุ่มใดใช้สำหรับสลับหน้าต่างระหว่างไฟล์ Excel ที่เปิดไว้หลายไฟล์?", options: ["Ctrl + Tab", "Alt + Tab", "Shift + Tab", "ถูกทุกข้อ"], ans: 1 },
+                { q: "ข้อใดคือสัญลักษณ์ของเมาส์เมื่อต้องการย้าย (Move) ข้อมูล?", options: ["กากบาทสีดำหนา", "ลูกศรสี่ทิศ", "เครื่องหมายบวกสีขาว", "ตัว I"], ans: 1 },
+                { q: "การซ่อน (Hide) แถวหรือคอลัมน์ ข้อมูลในนั้นจะหายไปหรือไม่?", options: ["หายไปและถูกลบทิ้ง", "ไม่หายไป แค่ไม่แสดงบนหน้าจอ", "ถูกย้ายไปชีตอื่น", "เปลี่ยนเป็นสีขาว"], ans: 1 },
+                { q: "การใช้คำสั่ง Freeze Panes จะมีเส้นสีใดปรากฏขึ้นเพื่อแบ่งส่วน?", options: ["สีแดง", "สีน้ำเงิน", "สีเทาเข้ม/ดำ", "ไม่มีเส้น"], ans: 2 },
+                { q: "หากต้องการตั้งค่าให้ Excel บันทึกอัตโนมัติ (AutoRecover) ทุกๆ 5 นาที ต้องไปที่เมนูใด?", options: ["View > AutoSave", "Review > Save", "File > Options > Save", "Data > AutoRecover"], ans: 2 },
+                { q: "หากต้องการให้เซลล์แสดงวันที่ปัจจุบัน และอัปเดตอัตโนมัติทุกวัน ควรใช้ฟังก์ชันใด?", options: ["=NOW()", "=TODAY()", "=DATE()", "=CURRENT()"], ans: 1 },
+                { q: "หากต้องการพิมพ์ข้อความ 'Hello' ให้อยู่กึ่งกลางระหว่างเซลล์ A1 ถึง D1 ต้องใช้คำสั่งใด?", options: ["Wrap Text", "Center", "Merge & Center", "Justify"], ans: 2 },
+                { q: "คำสั่งใดใช้ล้างเฉพาะ 'รูปแบบ' (เช่น สีตัวอักษร) แต่คงข้อมูลไว้?", options: ["Clear Contents", "Clear Formats", "Clear All", "Clear Comments"], ans: 1 },
+                { q: "ข้อใดคือปุ่มคีย์ลัดสำหรับบันทึกงาน (Save)?", options: ["Ctrl + S", "Ctrl + B", "Ctrl + P", "Ctrl + O"], ans: 0 },
+                { q: "การกดปุ่ม Enter หลังจากพิมพ์ข้อมูลในเซลล์เสร็จ เซลล์ที่ถูกเลือกจะเลื่อนไปทางใด (ค่าเริ่มต้น)?", options: ["ขึ้นบน", "ลงล่าง", "ไปทางซ้าย", "ไปทางขวา"], ans: 1 },
+                { q: "ชนิดข้อมูลใดที่ Excel จะจัดให้อยู่ชิดขวาของเซลล์โดยอัตโนมัติ?", options: ["ข้อความ", "ตัวเลขและวันที่", "สัญลักษณ์พิเศษ", "สูตรที่ผิดพลาด"], ans: 1 },
+                { q: "คำสั่งใดใช้เปลี่ยนสีแท็บแผ่นงาน (Sheet Tab)?", options: ["คลิกขวาที่แท็บ > Tab Color", "Format > Sheet Color", "View > Color", "Page Layout > Themes"], ans: 0 },
+                { q: "มุมมองใดที่เหมาะสมที่สุดในการดูว่าเอกสารจะถูกพิมพ์ออกมาหน้าตาเป็นอย่างไร?", options: ["Normal", "Page Break Preview", "Print Layout", "Print Preview"], ans: 3 },
+                { q: "เครื่องหมายใดใช้บอกว่าข้อมูลนั้นเป็น 'ข้อความ' แม้จะพิมพ์เป็นตัวเลขก็ตาม (เช่น พิมพ์เบอร์โทรศัพท์)?", options: ["เครื่องหมายคำพูด (\"\")", "เครื่องหมายจุลภาค (,)", "เครื่องหมายขีดเดียว (')", "เครื่องหมายวงเล็บ ()"], ans: 2 }
+            ],
+            2: [ // Post-Test ชุดที่ 2
+                { q: "รูปแบบเซลล์ (Cell Format) ใดที่ใช้แสดงตัวเลขเชิงวิทยาศาสตร์ เช่น 1.2E+03?", options: ["Fraction", "Scientific", "Text", "Special"], ans: 1 },
+                { q: "คำสั่งใดใช้สำหรับตีเส้นขอบตารางแบบเส้นคู่ (Double Line)?", options: ["Line Style", "Line Color", "Draw Border", "Border Style > Double"], ans: 0 },
+                { q: "ข้อใดคือความหมายของ 'Wrap Text'?", options: ["ห่อหุ้มเซลล์ป้องกันการแก้ไข", "ตัดคำขึ้นบรรทัดใหม่ในเซลล์เดิมเมื่อข้อความยาวเกินไป", "ลบข้อความส่วนที่เกินออก", "ย่อขนาดตัวอักษรให้พอดีเซลล์"], ans: 1 },
+                { q: "หากต้องการคัดลอกเฉพาะ 'ความกว้างของคอลัมน์' (Column Width) โดยใช้ Paste Special ต้องเลือกตัวเลือกใด?", options: ["Values", "Formats", "Column widths", "All"], ans: 2 },
+                { q: "คำสั่ง Conditional Formatting อยู่ในแท็บเมนูใด?", options: ["Home", "Insert", "Page Layout", "Data"], ans: 0 },
+                { q: "Data Bars ใน Conditional Formatting ใช้ทำหน้าที่อะไร?", options: ["สร้างกราฟแท่งแยกเซลล์", "แสดงแถบสีในเซลล์ตามสัดส่วนของตัวเลข", "ตรวจสอบข้อผิดพลาด", "ป้องกันการป้อนข้อมูลซ้ำ"], ans: 1 },
+                { q: "คำสั่ง Format Painter (แปรงทาสี) สามารถใช้งานหลายครั้งต่อเนื่องได้โดยวิธีใด?", options: ["กด Shift ค้างไว้", "ดับเบิลคลิกที่ไอคอน Format Painter", "คลิกขวา", "กด Ctrl ค้างไว้"], ans: 1 },
+                { q: "คำสั่ง Shrink to fit ในหน้าต่าง Format Cells มีหน้าที่อะไร?", options: ["ตัดคำขึ้นบรรทัดใหม่", "ลดขนาดตัวอักษรอัตโนมัติเพื่อให้พอดีกับความกว้างเซลล์", "ผสานเซลล์", "ลบข้อมูลที่เกิน"], ans: 1 },
+                { q: "หากต้องการกำหนดให้หัวตารางอยู่ในทุกหน้าของการพิมพ์ ต้องตั้งค่าที่คำสั่งใด?", options: ["Header & Footer", "Print Area", "Print Titles", "Page Order"], ans: 2 },
+                { q: "ระยะขอบกระดาษ (Margins) แบ่งออกเป็นกี่ด้าน?", options: ["2 ด้าน (ซ้าย, ขวา)", "3 ด้าน (บน, ล่าง, กลาง)", "4 ด้าน (บน, ล่าง, ซ้าย, ขวา)", "6 ด้าน"], ans: 2 },
+                { q: "หากต้องการแทรกเลขหน้าอัตโนมัติในการพิมพ์ ต้องใช้คำสั่งใด?", options: ["Insert > Page Number", "Page Setup > Header/Footer", "View > Page Layout", "ถูกทั้ง A และ B"], ans: 1 },
+                { q: "คำสั่ง Scale to Fit ในการพิมพ์ มีประโยชน์อย่างไร?", options: ["เปลี่ยนสีกระดาษ", "บีบย่อตารางที่กว้างเกินไปให้พอดีกับหน้ากระดาษ 1 หน้า", "ขยายตัวอักษรให้ใหญ่สุด", "ปรับความสว่างของหมึกพิมพ์"], ans: 1 },
+                { q: "ข้อใดคือขนาดกระดาษมาตรฐานที่ใช้พิมพ์งานทั่วไป?", options: ["A3", "A5", "A4", "Letter"], ans: 2 },
+                { q: "สไตล์เซลล์ (Cell Styles) แบบ 'Bad' มักจะแสดงด้วยสีใดเพื่อสื่อถึงข้อมูลที่ผิดปกติ?", options: ["สีเขียว", "สีเหลือง", "สีแดง/ชมพู", "สีน้ำเงิน"], ans: 2 },
+                { q: "Theme (ชุดรูปแบบ) ใน Excel ใช้ควบคุมอะไรบ้าง?", options: ["สี (Colors) อย่างเดียว", "ฟอนต์ (Fonts) อย่างเดียว", "เอฟเฟกต์ (Effects) อย่างเดียว", "ถูกทุกข้อ (Colors, Fonts, Effects)"], ans: 3 },
+                { q: "หากต้องการให้ข้อความในเซลล์เอียง 45 องศา ต้องตั้งค่าในแท็บใดของ Format Cells?", options: ["Number", "Alignment", "Font", "Border"], ans: 1 },
+                { q: "รูปแบบวันที่ '14-Mar-12' จัดอยู่ในหมวดหมู่ใด?", options: ["Short Date", "Long Date", "Custom", "Time"], ans: 2 },
+                { q: "คำสั่ง Insert > Picture ใช้สำหรับทำอะไร?", options: ["แทรกตาราง", "แทรกรูปร่าง", "แทรกรูปภาพจากไฟล์ในเครื่อง", "แทรกกราฟ"], ans: 2 },
+                { q: "การแทรกข้อความศิลป์ (WordArt) อยู่ในเมนูใด?", options: ["Home", "Insert", "Page Layout", "Review"], ans: 1 },
+                { q: "หากต้องการตั้งค่าให้พิมพ์ตารางออกมากึ่งกลางหน้ากระดาษพอดี ต้องไปกำหนดที่ใด?", options: ["Margins > Center on page", "Page > Orientation", "Sheet > Gridlines", "Header > Center"], ans: 0 }
+            ],
+            3: [ // Post-Test ชุดที่ 3
+                { q: "สูตรคำนวณ =10-4/2 มีผลลัพธ์เท่ากับเท่าใด (ตามหลัก Order of Operations)?", options: ["3", "8", "12", "6"], ans: 1 },
+                { q: "สัญลักษณ์ใดมีความสำคัญสูงสุดและถูกคำนวณก่อนเสมอใน Excel?", options: ["คูณ (*)", "วงเล็บ ()", "ยกกำลัง (^)", "หาร (/)"], ans: 1 },
+                { q: "ฟังก์ชัน =AVERAGE(2, 4, 6, 8) ให้ผลลัพธ์เท่าใด?", options: ["20", "5", "4", "6"], ans: 1 },
+                { q: "หากต้องการหาว่ามีนักเรียนเข้าสอบกี่คน (นับจากรายชื่อที่เป็นตัวอักษร) ควรใช้ฟังก์ชันใด?", options: ["COUNT", "COUNTA", "COUNTIF", "SUM"], ans: 1 },
+                { q: "ฟังก์ชันใดใช้ปัดเศษตัวเลขทศนิยมให้เป็นจำนวนเต็มตามหลักคณิตศาสตร์?", options: ["TRUNC", "INT", "ROUND", "MOD"], ans: 2 },
+                { q: "ฟังก์ชัน =MAX(10, 25, 5, 50) ผลลัพธ์คือข้อใด?", options: ["10", "25", "50", "5"], ans: 2 },
+                { q: "เครื่องหมาย $ ในสูตร =A$1 หมายความว่าอย่างไร?", options: ["ล็อคทั้งคอลัมน์และแถว", "ล็อคเฉพาะแถวที่ 1", "ล็อคเฉพาะคอลัมน์ A", "เป็นการจัดรูปแบบสกุลเงิน"], ans: 1 },
+                { q: "ข้อใดคือการอ้างอิงเซลล์ข้าม Worksheet ที่ถูกต้อง?", options: ["Sheet2!A1", "Sheet2@A1", "Sheet2#A1", "Sheet2$A1"], ans: 0 },
+                { q: "ฟังก์ชันใดใช้คำนวณจำนวนวันระหว่างวันที่ 2 วัน?", options: ["DATEDIF", "DAYS360", "NETWORKDAYS", "ใช้ได้ทุกข้อที่กล่าวมา"], ans: 3 },
+                { q: "หากสูตรคือ =IF(A1>=50, \"ผ่าน\", \"ตก\") และ A1 มีค่า 49 ผลลัพธ์คืออะไร?", options: ["ผ่าน", "ตก", "TRUE", "FALSE"], ans: 1 },
+                { q: "ถ้าต้องการตรวจสอบเงื่อนไขหลายข้อพร้อมกัน และต้องเป็นจริง 'ทุกข้อ' จึงจะให้ผลลัพธ์เป็นจริง ต้องใช้ฟังก์ชันใดคู่กับ IF?", options: ["OR", "NOT", "AND", "XOR"], ans: 2 },
+                { q: "ฟังก์ชันใดใช้สุ่มตัวเลขจำนวนเต็มระหว่างค่าที่กำหนด?", options: ["RAND()", "RANDBETWEEN()", "RANDOM()", "RND()"], ans: 1 },
+                { q: "ฟังก์ชัน LEN ใช้ทำอะไร?", options: ["เปลี่ยนตัวพิมพ์เล็กเป็นพิมพ์ใหญ่", "ตัดช่องว่างซ้ายขวา", "นับจำนวนตัวอักษรในเซลล์", "ต่อข้อความ"], ans: 2 },
+                { q: "ข้อผิดพลาด #NAME? เกิดจากสาเหตุใด?", options: ["ตัวหารเป็น 0", "พิมพ์ชื่อฟังก์ชันหรือตัวแปรผิด", "รูปแบบตัวเลขกว้างเกินเซลล์", "อ้างอิงเซลล์ที่ถูกลบ"], ans: 1 },
+                { q: "ข้อผิดพลาด #REF! เกิดจากสาเหตุใด?", options: ["อ้างอิงเซลล์ที่ไม่ถูกต้องหรือเซลล์นั้นถูกลบไปแล้ว", "ชนิดข้อมูลผิดพลาด", "ใส่สูตรยาวเกินไป", "ตัวเลขติดลบ"], ans: 0 },
+                { q: "ฟังก์ชัน VLOOKUP ตัว V ย่อมาจากอะไร?", options: ["Value", "Variable", "Vertical", "Visual"], ans: 2 },
+                { q: "ในฟังก์ชัน VLOOKUP(lookup_value, table_array, col_index_num, [range_lookup]) ค่า col_index_num คืออะไร?", options: ["จำนวนแถวทั้งหมด", "ลำดับคอลัมน์ที่ต้องการดึงข้อมูลมาแสดง", "เซลล์อ้างอิง", "รูปแบบการค้นหา"], ans: 1 },
+                { q: "หากต้องการแปลงข้อความ 'excel' ให้เป็นพิมพ์ใหญ่ทั้งหมด 'EXCEL' ต้องใช้ฟังก์ชันใด?", options: ["LOWER", "PROPER", "UPPER", "CAPITAL"], ans: 2 },
+                { q: "ฟังก์ชัน TRIM มีประโยชน์อย่างไร?", options: ["เปลี่ยนสีตัวอักษร", "ลบช่องว่างส่วนเกินที่อยู่หน้าและหลังข้อความ", "ตัดตัวเลขทศนิยมทิ้ง", "ต่อข้อความ"], ans: 1 },
+                { q: "สูตร =CONCATENATE(\"A\", \"B\", \"C\") ผลลัพธ์คือข้อใด?", options: ["A B C", "A,B,C", "ABC", "A+B+C"], ans: 2 }
+            ],
+            4: [ // Post-Test ชุดที่ 4
+                { q: "เครื่องมือ Data Validation สามารถทำอะไรได้บ้าง?", options: ["สร้าง Drop-down list", "จำกัดให้ป้อนเฉพาะตัวเลข 1-100", "แจ้งเตือนเมื่อป้อนข้อมูลผิดเงื่อนไข", "ถูกทุกข้อ"], ans: 3 },
+                { q: "หากต้องการแยกข้อความ 'สมชาย รักเรียน' ออกเป็นคอลัมน์ชื่อและนามสกุล ต้องใช้เครื่องมือใด?", options: ["Remove Duplicates", "Text to Columns", "Flash Fill", "Consolidate"], ans: 1 },
+                { q: "เครื่องมือ Flash Fill (Ctrl+E) มีความสามารถเด่นในเรื่องใด?", options: ["ลบข้อมูลอัตโนมัติ", "เติมข้อมูลอัตโนมัติโดยจดจำรูปแบบพฤติกรรมที่เราพิมพ์", "ระบายสีเซลล์แบบรวดเร็ว", "แทรกกราฟทันที"], ans: 1 },
+                { q: "การลบข้อมูลที่ซ้ำกันในตารางเพื่อให้อยู่เพียงรายการเดียวใช้เครื่องมือใด?", options: ["Delete Sheet", "Remove Duplicates", "Filter", "Clear All"], ans: 1 },
+                { q: "เครื่องมือใดใช้สำหรับรวมข้อมูลจากหลายๆ ชีต หรือหลายๆ ไฟล์ มาสรุปผลในที่เดียว?", options: ["Consolidate", "Group", "Subtotal", "What-If Analysis"], ans: 0 },
+                { q: "What-If Analysis: Goal Seek ใช้สำหรับแก้ปัญหาแบบใด?", options: ["หาผลลัพธ์จากตัวแปรที่มี", "ค้นหาค่าตัวแปรต้น เพื่อให้ได้ผลลัพธ์ตามเป้าหมายที่ต้องการ", "สร้างตารางสรุปผล", "พยากรณ์ข้อมูลในอนาคต"], ans: 1 },
+                { q: "การเรียงลำดับข้อมูลแบบ Custom Sort สามารถเรียงลำดับตามสิ่งใดได้บ้างนอกจากตัวอักษร?", options: ["สีเซลล์ (Cell Color)", "สีฟอนต์ (Font Color)", "ไอคอนเซลล์ (Cell Icon)", "ถูกทุกข้อ"], ans: 3 },
+                { q: "คำสั่ง Subtotal จะทำงานได้ถูกต้องที่สุดเมื่อเราทำสิ่งใดก่อน?", options: ["ใส่สีให้ตาราง", "เรียงลำดับข้อมูล (Sort) คอลัมน์ที่จะจัดกลุ่ม", "สร้างกราฟ", "ลบเซลล์ว่าง"], ans: 1 },
+                { q: "ฟังก์ชัน IFERROR ใช้ทำหน้าที่อะไร?", options: ["นับจำนวนข้อผิดพลาด", "ตรวจสอบข้อผิดพลาด ถ้ามีให้แสดงค่าอื่นแทนค่า Error", "บังคับให้เกิด Error", "ลบข้อความ Error ทิ้ง"], ans: 1 },
+                { q: "สูตร =COUNTIFS(A1:A10, \">50\", B1:B10, \"ชาย\") หมายความว่าอย่างไร?", options: ["รวมคะแนนผู้ชายที่เกิน 50", "หาค่าเฉลี่ย", "นับจำนวนเซลล์ที่เป็นผู้ชายและมีค่ามากกว่า 50", "ไม่มีฟังก์ชันนี้ใน Excel"], ans: 2 },
+                { q: "ฟังก์ชันใดที่ใช้หาผลรวมโดยมีเงื่อนไขมากกว่า 1 เงื่อนไข?", options: ["SUMIF", "SUMIFS", "COUNTIF", "SUMPRODUCT"], ans: 1 },
+                { q: "เครื่องมือใดใช้จัดกลุ่มแถวหรือคอลัมน์เพื่อให้สามารถยุบ/ขยาย (เครื่องหมาย +/-) ได้?", options: ["Group", "Freeze Panes", "Hide", "Filter"], ans: 0 },
+                { q: "การตั้งรหัสผ่านป้องกันการเปิดไฟล์ (Encrypt with Password) อยู่ในเมนูใด?", options: ["Home", "Insert", "File > Info", "View"], ans: 2 },
+                { q: "หากต้องการป้องกันไม่ให้ใครแก้ไขข้อมูลในแผ่นงาน (Worksheet) ต้องใช้คำสั่งใด?", options: ["Protect Workbook", "Protect Sheet", "Lock Cell", "Hide Sheet"], ans: 1 },
+                { q: "ค่าเริ่มต้นของเซลล์ทุกเซลล์ในแผ่นงาน ก่อนการ Protect Sheet คือรูปแบบใด?", options: ["Unlocked (ไม่ล็อก)", "Locked (ล็อก)", "Hidden (ซ่อน)", "Read-only (อ่านอย่างเดียว)"], ans: 1 },
+                { q: "ตารางรูปแบบพิเศษ (Format as Table) มีคุณสมบัติเด่นคืออะไร?", options: ["มี Filter ให้อัตโนมัติ", "สูตรขยายตามข้อมูลใหม่แถวด้านล่างอัตโนมัติ", "สลับสีแถวให้อัตโนมัติ", "ถูกทุกข้อ"], ans: 3 },
+                { q: "Slicer คือเครื่องมือที่ใช้ร่วมกับฟีเจอร์ใดเพื่อช่วยในการกรองข้อมูลให้ง่ายขึ้น?", options: ["PivotTable และ Table", "Chart", "Macro", "Validation"], ans: 0 },
+                { q: "คำสั่งใดใช้ตรวจสอบว่าสูตรในเซลล์นี้ ดึงข้อมูลอ้างอิงมาจากเซลล์ใดบ้าง (มีลูกศรชี้)?", options: ["Trace Dependents", "Trace Precedents", "Show Formulas", "Evaluate Formula"], ans: 1 },
+                { q: "การบันทึกมาโคร (Record Macro) คืออะไร?", options: ["การบันทึกหน้าจอเป็นวิดีโอ", "การบันทึกขั้นตอนการทำงานซ้ำๆ เพื่อเรียกใช้ในภายหลัง", "การเซฟไฟล์อัตโนมัติ", "การสร้างกราฟสามมิติ"], ans: 1 },
+                { q: "การเขียนโค้ด Macro ใน Excel ใช้ภาษาโปรแกรมใด?", options: ["Python", "C++", "VBA (Visual Basic for Applications)", "Java"], ans: 2 }
+            ],
+            5: [ // Post-Test ชุดที่ 5
+                { q: "PivotTable คืออะไร?", options: ["ตารางสูตรคูณ", "เครื่องมือสำหรับสรุปผลและวิเคราะห์ข้อมูลจำนวนมาก", "กราฟรูปแบบหนึ่ง", "ฟังก์ชันคำนวณภาษี"], ans: 1 },
+                { q: "ข้อใดคือสิ่งที่ 'ห้ามมี' ในตารางฐานข้อมูลที่จะนำไปทำ PivotTable?", options: ["แถวว่าง หรือ คอลัมน์ว่างแทรกกลางตาราง", "หัวคอลัมน์ (Header) ที่ชื่อซ้ำกัน", "การผสานเซลล์ (Merge Cells) ในตาราง", "ถูกทุกข้อ"], ans: 3 },
+                { q: "ใน PivotTable Fields พื้นที่ใดที่ใช้สำหรับแสดงค่าผลรวมหรือการคำนวณ (เช่น ยอดขาย)?", options: ["Filters", "Columns", "Rows", "Values"], ans: 3 },
+                { q: "หากนำข้อมูล 'แผนก' ไปวางในพื้นที่ Rows (แถว) ของ PivotTable จะเกิดอะไรขึ้น?", options: ["ข้อมูลแผนกจะแสดงผลรวม", "ชื่อแผนกจะไม่แสดงซ้ำกันและเรียงลงมาตามแนวนอน", "ชื่อแผนกจะไม่แสดงซ้ำกันและเรียงลงมาตามแนวตั้ง", "เกิดข้อผิดพลาด"], ans: 2 },
+                { q: "ค่าเริ่มต้น (Default) ของข้อมูลตัวเลขเมื่อนำไปวางในช่อง Values ของ PivotTable คือการคำนวณแบบใด?", options: ["Count (นับจำนวน)", "Sum (ผลรวม)", "Average (ค่าเฉลี่ย)", "Max (ค่ามากสุด)"], ans: 1 },
+                { q: "ค่าเริ่มต้น (Default) ของข้อมูลข้อความเมื่อนำไปวางในช่อง Values ของ PivotTable คือการคำนวณแบบใด?", options: ["Count (นับจำนวน)", "Sum (ผลรวม)", "Average (ค่าเฉลี่ย)", "Max (ค่ามากสุด)"], ans: 0 },
+                { q: "กราฟที่สร้างขึ้นจากข้อมูลใน PivotTable เรียกว่าอะไร?", options: ["Smart Chart", "Dynamic Chart", "PivotChart", "Data Chart"], ans: 2 },
+                { q: "กราฟแท่ง (Bar Chart) มีลักษณะแตกต่างจาก Column Chart อย่างไร?", options: ["แท่งมีลักษณะเป็นทรงกระบอก", "แท่งแสดงผลในแนวนอน", "แท่งแสดงผลในแนวตั้ง", "ใช้แสดงข้อมูลแบบเปอร์เซ็นต์เท่านั้น"], ans: 1 },
+                { q: "กราฟใดเหมาะสำหรับแสดงการเปลี่ยนแปลงของอุณหภูมิตลอด 1 สัปดาห์?", options: ["Pie Chart", "Line Chart", "Doughnut Chart", "Scatter Chart"], ans: 1 },
+                { q: "ส่วนประกอบใดของกราฟที่ใช้แสดงแหล่งที่มาของชุดข้อมูลแต่ละสี?", options: ["Chart Title", "Axis", "Legend", "Gridlines"], ans: 2 },
+                { q: "เมื่อข้อมูลต้นทางมีการเปลี่ยนแปลง ต้องกดปุ่มใดเพื่อให้ PivotTable อัปเดตข้อมูลตาม?", options: ["Refresh", "Update", "Sync", "F5"], ans: 0 },
+                { q: "Timeline เป็นเครื่องมือช่วยกรองข้อมูลใน PivotTable ที่ใช้กับข้อมูลประเภทใดเท่านั้น?", options: ["ตัวเลข", "ข้อความ", "วันที่ (Date)", "เวลา (Time)"], ans: 2 },
+                { q: "การสร้างกราฟแบบด่วน (Quick Chart) ทันทีบนชีตเดียวกัน ใช้แป้นพิมพ์ลัดใด?", options: ["Alt + F1", "F11", "Ctrl + C", "Ctrl + Q"], ans: 0 },
+                { q: "กราฟแบบใดที่แสดงความสัมพันธ์ระหว่างตัวแปรสองตัว (พิกัด X, Y)?", options: ["Radar Chart", "Area Chart", "Scatter Chart", "Surface Chart"], ans: 2 },
+                { q: "ใน PivotTable หากต้องการให้แสดงข้อมูลเป็น % ของผลรวมทั้งหมด ต้องตั้งค่าที่คำสั่งใด?", options: ["Value Field Settings > Show Values As", "Format Cells > Percentage", "Sort > Percentage", "Calculated Field"], ans: 0 },
+                { q: "Calculated Field ใน PivotTable คืออะไร?", options: ["เซลล์ที่ติดสูตรผิด", "ฟิลด์หรือคอลัมน์ใหม่ที่เกิดจากการสร้างสูตรคำนวณระหว่างฟิลด์เดิม", "แถบแสดงข้อผิดพลาด", "การเปลี่ยนชื่อฟิลด์"], ans: 1 },
+                { q: "Trendline ในกราฟใช้เพื่อวัตถุประสงค์ใด?", options: ["ตกแต่งกราฟให้สวยงาม", "แสดงเส้นแนวโน้มเพื่อดูทิศทางของข้อมูล", "ทำเป็นเส้นตาราง Grid", "ขีดเส้นใต้ชื่อกราฟ"], ans: 1 },
+                { q: "Combo Chart (กราฟผสม) คืออะไร?", options: ["กราฟที่รวมหลายๆ สีไว้ด้วยกัน", "กราฟที่ใช้ข้อมูลจากหลายไฟล์", "กราฟที่รวมรูปแบบกราฟตั้งแต่ 2 ชนิดขึ้นไป เช่น กราฟแท่งคู่กราฟเส้น", "ไม่มีกราฟชนิดนี้"], ans: 2 },
+                { q: "แกนทุติยภูมิ (Secondary Axis) มักใช้ในกรณีใด?", options: ["ข้อมูล 2 ชุดมีค่าสเกลต่างกันมาก", "เมื่อสีกราฟไม่พอ", "เมื่อต้องการกราฟวงกลม", "เมื่อมีชุดข้อมูลเดียว"], ans: 0 },
+                { q: "Sparklines มีทั้งหมดกี่ประเภท?", options: ["1 ประเภท", "2 ประเภท", "3 ประเภท (Line, Column, Win/Loss)", "4 ประเภท"], ans: 2 }
+            ]
+        };
+
+        function startPostTest(setNum) {
+            currentPostTestSet = setNum;
+            document.getElementById('posttest-menu').classList.add('hidden');
+            document.getElementById('posttest-result-container').classList.add('hidden');
+            document.getElementById('posttest-exam-container').classList.remove('hidden');
+            
+            document.getElementById('posttest-exam-title').innerText = `แบบทดสอบ ชุดที่ ${setNum}`;
+            
+            const area = document.getElementById('posttest-questions-area');
+            area.innerHTML = ''; 
+
+            const questions = postTestData[setNum];
+            questions.forEach((item, index) => {
+                let html = `
+                <div class="bg-white rounded-[20px] p-6 border border-gray-100 shadow-sm border-l-4 border-l-blue-500">
+                    <p class="font-extrabold text-slate-800 mb-4 text-lg"><span class="text-blue-600 mr-1">${index + 1}.</span> ${item.q}</p>
+                    <div class="space-y-3 pl-2">
+                `;
+                
+                item.options.forEach((opt, optIndex) => {
+                    html += `
+                        <label class="flex items-center p-3.5 border border-gray-100 rounded-xl hover:bg-blue-50 hover:border-blue-200 cursor-pointer transition">
+                            <input type="radio" name="pq${index}" value="${optIndex}" class="w-4 h-4 text-blue-600 focus:ring-blue-500" required>
+                            <span class="ml-3 text-slate-700 font-medium">${opt}</span>
+                        </label>
+                    `;
+                });
+
+                html += `</div></div>`;
+                area.innerHTML += html;
+            });
+            window.scrollTo(0, 0);
+        }
+
+        function submitPostTest(e) {
+            e.preventDefault();
+            const form = e.target;
+            const questions = postTestData[currentPostTestSet];
+            let score = 0;
+
+            questions.forEach((item, index) => {
+                const selected = form.elements[`pq${index}`].value;
+                if(selected && parseInt(selected) === item.ans) {
+                    score++;
+                }
+            });
+
+            document.getElementById('posttest-exam-container').classList.add('hidden');
+            document.getElementById('posttest-score').innerText = score;
+            document.getElementById('posttest-result-container').classList.remove('hidden');
+            window.scrollTo(0, 0);
+        }
+
+        function backToPostTestMenu() {
+            document.getElementById('posttest-exam-container').classList.add('hidden');
+            document.getElementById('posttest-result-container').classList.add('hidden');
+            document.getElementById('posttest-menu').classList.remove('hidden');
+            document.getElementById('posttest-form').reset();
+            window.scrollTo(0, 0);
+        }
+
+        // ==========================================
+        // ระบบ ปฏิทิน (Calendar)
+        // ==========================================
+        let currentCalendarDate = new Date();
+        function renderCalendar() {
+            const year = currentCalendarDate.getFullYear();
+            const month = currentCalendarDate.getMonth();
+            const monthNames = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+            document.getElementById('calendarTitle').innerText = `${monthNames[month]} ${year + 543}`;
+            const calendarGrid = document.getElementById('calendarGrid');
+            let html = `<div class="font-bold text-red-500 py-1">อา.</div><div class="font-bold text-gray-500 py-1">จ.</div><div class="font-bold text-gray-500 py-1">อ.</div><div class="font-bold text-gray-500 py-1">พ.</div><div class="font-bold text-gray-500 py-1">พฤ.</div><div class="font-bold text-gray-500 py-1">ศ.</div><div class="font-bold text-gray-500 py-1">ส.</div>`;
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const daysInPrevMonth = new Date(year, month, 0).getDate();
+            const today = new Date();
+            const isCurrentMonth = today.getMonth() === month && today.getFullYear() === year;
+            
+            for (let i = 0; i < firstDay; i++) {
+                html += `<div class="calendar-day text-gray-300 empty">${daysInPrevMonth - firstDay + 1 + i}</div>`;
+            }
+            for (let i = 1; i <= daysInMonth; i++) {
+                let classes = "calendar-day";
+                if (isCurrentMonth && i === today.getDate()) classes += " today";
+                const dayOfWeek = (firstDay + i - 1) % 7;
+                if (dayOfWeek === 0) classes += " text-red-500";
+                html += `<div class="${classes}">${i}</div>`;
+            }
+            const totalCells = firstDay + daysInMonth;
+            const nextMonthPadding = 7 - (totalCells % 7);
+            if (nextMonthPadding < 7) {
+                for (let i = 1; i <= nextMonthPadding; i++) html += `<div class="calendar-day text-gray-300 empty">${i}</div>`;
+            }
+            calendarGrid.innerHTML = html;
+        }
+        
+        function changeMonth(step) { 
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + step); 
+            renderCalendar(); 
+        }
+        
+        renderCalendar();
+
+    </script>
+</body>
+</html>
